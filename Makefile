@@ -14,6 +14,10 @@ build() {
     go build -o gomake.exe
 }
 
+deadcode() {
+    deadcode github.com/ricochhet/gomake
+}
+
 prebuild() {
     @fmt
     @lint
