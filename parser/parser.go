@@ -72,7 +72,7 @@ func GetBlock(s string, fname string, params []string) (FunctionBlock, error) {
 	return block, nil
 }
 
-//nolint:cyclop // wontfix
+//nolint:cyclop,nestif // wontfix
 func ParseText(text string) ([]FunctionBlock, error) {
 	var blocks []FunctionBlock
 
@@ -127,7 +127,11 @@ func ParseText(text string) ([]FunctionBlock, error) {
 
 			commands, params := parseCallers(blocks, line)
 			for _, cmd := range commands {
-				currentBlock.Commands = append(currentBlock.Commands, Command{Directory: currentBlock.Directory, Command: cmd})
+				if cmd.Directory == "" {
+					cmd.Directory = currentBlock.Directory
+				}
+
+				currentBlock.Commands = append(currentBlock.Commands, cmd)
 			}
 
 			currentBlock.Params = append(currentBlock.Params, params...)
@@ -152,14 +156,14 @@ func BlockParamsToCommand(block FunctionBlock, params []string) (FunctionBlock, 
 		return FunctionBlock{}, errTooFewArguments
 	}
 
-	parsedParams := []Command{}
+	parsedCommands := []Command{}
 
 	for _, command := range parsedBlock.Commands {
 		replacedCommand := replaceArrayWithArray(command.Command, block.Params, params)
-		parsedParams = append(parsedParams, Command{Directory: command.Directory, Command: replacedCommand})
+		parsedCommands = append(parsedCommands, Command{Directory: command.Directory, Command: replacedCommand})
 	}
 
-	parsedBlock.Commands = parsedParams
+	parsedBlock.Commands = parsedCommands
 
 	return parsedBlock, nil
 }
@@ -199,8 +203,8 @@ func replaceArrayWithArray(original string, oldArray []string, newArray []string
 	return original
 }
 
-func parseCallers(blocks []FunctionBlock, line string) ([]string, []string) {
-	var commands []string
+func parseCallers(blocks []FunctionBlock, line string) ([]Command, []string) {
+	var commands []Command
 
 	var params []string
 
@@ -208,15 +212,13 @@ func parseCallers(blocks []FunctionBlock, line string) ([]string, []string) {
 		callerName := strings.TrimPrefix(line, Caller)
 		for _, block := range blocks {
 			if block.Name == callerName {
-				for _, cmd := range block.Commands {
-					commands = append(commands, cmd.Command)
-				}
+				commands = append(commands, block.Commands...)
 
 				params = append(params, block.Params...)
 			}
 		}
 	} else {
-		commands = append(commands, line)
+		commands = append(commands, Command{Command: line}) //nolint:exhaustruct // wontfix
 	}
 
 	return commands, params

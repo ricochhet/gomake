@@ -38,7 +38,7 @@ func Exec(commands []parser.Command) error {
 	}
 
 	for _, cmd := range commands {
-		fmt.Println("gomake: executing command:", cmd.Command)
+		fmt.Printf("gomake: executing command: %s in directory: %s\n", cmd.Command, cmd.Directory)
 		command := exec.Command(shell, flag, cmd.Command)
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
