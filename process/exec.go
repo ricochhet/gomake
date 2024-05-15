@@ -48,7 +48,3 @@ func Exec(commands []string) error {
 
 	return nil
 }
-
-func Errr(err error) {
-	fmt.Println("gomake: " + err.Error())
-}

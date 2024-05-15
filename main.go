@@ -19,7 +19,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ricochhet/gomake/parser"
 	"github.com/ricochhet/gomake/process"
@@ -27,32 +29,39 @@ import (
 
 func main() {
 	if flags.Function == "" {
-		process.Errr(errNoFunctionName)
+		Errr(errNoFunctionName)
 	}
 
 	if flags.Path == "" {
-		flags.Path = "./Makefile"
+		flags.Path = "./make.gomake"
+	}
+
+	fmt.Println()
+
+	if filepath.Ext(flags.Path) != flags.Extension {
+		Errr(errInvalidFileType)
+		return
 	}
 
 	file, err := os.ReadFile(flags.Path)
 	if err != nil && flags.Path == "" {
-		process.Errr(errNoMakefilePath)
+		Errr(errNoMakefilePath)
 		return
 	}
 
 	if err != nil {
-		process.Errr(err)
+		Errr(err)
 		return
 	}
 
 	block, err := parser.GetBlock(string(file), flags.Function, flags.Arguments)
 	if err != nil {
-		process.Errr(err)
+		Errr(err)
 		return
 	}
 
 	if err := process.Exec(block.Commands); err != nil {
-		process.Errr(err)
+		Errr(err)
 		return
 	}
 }

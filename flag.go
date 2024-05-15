@@ -33,6 +33,7 @@ var (
 		Path:      "",
 		Function:  "",
 		Arguments: []string{},
+		Extension: ".gomake",
 	}
 )
 

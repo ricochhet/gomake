@@ -22,4 +22,5 @@ type Flags struct {
 	Path      string
 	Function  string
 	Arguments []string
+	Extension string
 }

@@ -18,9 +18,17 @@
 
 package main
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
-	errNoMakefilePath = errors.New("no makefile path specified")
-	errNoFunctionName = errors.New("no function name specified")
+	errNoMakefilePath  = errors.New("no makefile path specified")
+	errNoFunctionName  = errors.New("no function name specified")
+	errInvalidFileType = errors.New("invalid file type, expects: .gomake")
 )
+
+func Errr(err error) {
+	fmt.Println("gomake: " + err.Error())
+}
