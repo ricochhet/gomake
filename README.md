@@ -24,6 +24,12 @@ example_caller_in_function() {
     @example_function
 }
 
+example_directory_switch_function() {
+    mkdir mydir1
+    ~./mydir1
+    mkdir subdir1
+}
+
 example_function_with_params({param1}, {param2}) {
     echo {param1}, {param2}!
 }
@@ -35,6 +41,8 @@ example_function_with_params({param1}, {param2}) {
 gomake example_function
 
 gomake example_caller_in_function
+
+gomake example_directory_switch_function
 
 gomake example_function_with_params Hello World
 ```

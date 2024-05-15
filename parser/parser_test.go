@@ -19,6 +19,7 @@
 package parser_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/ricochhet/gomake/parser"
@@ -73,10 +74,21 @@ test({param}) {
 func TestBlockParamsToCommand(t *testing.T) {
 	t.Parallel()
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	block := parser.FunctionBlock{
-		Name:     "test",
-		Commands: []string{"echo {param}"},
-		Params:   []string{"test"},
+		Name: "test",
+		Commands: []parser.Command{
+			{
+				Command:   "echo test",
+				Directory: cwd,
+			},
+		},
+		Params:    []string{"test"},
+		Directory: cwd,
 	}
 
 	if _, err := parser.BlockParamsToCommand(block, []string{"test"}); err != nil {

@@ -21,14 +21,21 @@ package parser
 import (
 	"bufio"
 	"errors"
+	"os"
 	"regexp"
 	"strings"
 )
 
+type Command struct {
+	Directory string
+	Command   string
+}
+
 type FunctionBlock struct {
-	Name     string
-	Params   []string
-	Commands []string
+	Name      string
+	Params    []string
+	Commands  []Command
+	Directory string
 }
 
 const (
@@ -38,6 +45,7 @@ const (
 	RightParen   = ")"
 	Comment      = "#"
 	Caller       = "@"
+	Directory    = "~"
 )
 
 var (
@@ -64,12 +72,18 @@ func GetBlock(s string, fname string, params []string) (FunctionBlock, error) {
 	return block, nil
 }
 
-func ParseText(s string) ([]FunctionBlock, error) {
+//nolint:cyclop // wontfix
+func ParseText(text string) ([]FunctionBlock, error) {
 	var blocks []FunctionBlock
 
 	var currentBlock *FunctionBlock
 
-	scanner := bufio.NewScanner(strings.NewReader(s))
+	defaultDir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(text))
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -82,7 +96,12 @@ func ParseText(s string) ([]FunctionBlock, error) {
 		if strings.HasSuffix(line, LeftBracket) {
 			blockNameWithParentheses := strings.TrimSpace(strings.TrimRight(line, LeftBracket))
 			blockName, blockParams := parseBlockWithParams(blockNameWithParentheses)
-			currentBlock = &FunctionBlock{Name: blockName, Params: blockParams, Commands: []string{}}
+			currentBlock = &FunctionBlock{
+				Name:      blockName,
+				Params:    blockParams,
+				Commands:  []Command{},
+				Directory: defaultDir,
+			}
 
 			continue
 		}
@@ -95,8 +114,22 @@ func ParseText(s string) ([]FunctionBlock, error) {
 		}
 
 		if currentBlock != nil {
-			commands, params := parseCallers(*currentBlock, blocks, line)
-			currentBlock.Commands = commands
+			if strings.HasPrefix(line, Directory) {
+				newDir := strings.TrimSpace(strings.TrimPrefix(line, Directory))
+				if newDir == "" {
+					currentBlock.Directory = defaultDir
+				} else {
+					currentBlock.Directory = newDir
+				}
+
+				continue
+			}
+
+			commands, params := parseCallers(blocks, line)
+			for _, cmd := range commands {
+				currentBlock.Commands = append(currentBlock.Commands, Command{Directory: currentBlock.Directory, Command: cmd})
+			}
+
 			currentBlock.Params = append(currentBlock.Params, params...)
 		}
 	}
@@ -119,9 +152,11 @@ func BlockParamsToCommand(block FunctionBlock, params []string) (FunctionBlock, 
 		return FunctionBlock{}, errTooFewArguments
 	}
 
-	parsedParams := []string{}
+	parsedParams := []Command{}
+
 	for _, command := range parsedBlock.Commands {
-		parsedParams = append(parsedParams, replaceArrayWithArray(command, block.Params, params))
+		replacedCommand := replaceArrayWithArray(command.Command, block.Params, params)
+		parsedParams = append(parsedParams, Command{Directory: command.Directory, Command: replacedCommand})
 	}
 
 	parsedBlock.Commands = parsedParams
@@ -164,22 +199,24 @@ func replaceArrayWithArray(original string, oldArray []string, newArray []string
 	return original
 }
 
-func parseCallers(block FunctionBlock, blocks []FunctionBlock, line string) ([]string, []string) {
+func parseCallers(blocks []FunctionBlock, line string) ([]string, []string) {
 	var commands []string
 
 	var params []string
 
-	for _, command := range append(block.Commands, line) {
-		if callerName := strings.TrimPrefix(command, Caller); strings.HasPrefix(command, Caller) {
-			for _, b := range blocks {
-				if b.Name == callerName {
-					commands = append(commands, b.Commands...)
-					params = append(params, b.Params...)
+	if strings.HasPrefix(line, Caller) {
+		callerName := strings.TrimPrefix(line, Caller)
+		for _, block := range blocks {
+			if block.Name == callerName {
+				for _, cmd := range block.Commands {
+					commands = append(commands, cmd.Command)
 				}
+
+				params = append(params, block.Params...)
 			}
-		} else {
-			commands = append(commands, command)
 		}
+	} else {
+		commands = append(commands, line)
 	}
 
 	return commands, params

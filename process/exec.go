@@ -23,9 +23,11 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+
+	"github.com/ricochhet/gomake/parser"
 )
 
-func Exec(commands []string) error {
+func Exec(commands []parser.Command) error {
 	var shell, flag string
 	if runtime.GOOS == "windows" {
 		shell = "cmd"
@@ -36,12 +38,13 @@ func Exec(commands []string) error {
 	}
 
 	for _, cmd := range commands {
-		fmt.Println("gomake: executing command:", cmd)
-		cmd := exec.Command(shell, flag, cmd)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		fmt.Println("gomake: executing command:", cmd.Command)
+		command := exec.Command(shell, flag, cmd.Command)
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+		command.Dir = cmd.Directory
 
-		if err := cmd.Run(); err != nil {
+		if err := command.Run(); err != nil {
 			return err
 		}
 	}
