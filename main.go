@@ -19,7 +19,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -35,8 +34,6 @@ func main() {
 	if flags.Path == "" {
 		flags.Path = "./make.gomake"
 	}
-
-	fmt.Println()
 
 	if filepath.Ext(flags.Path) != flags.Extension {
 		Errr(errInvalidFileType)
