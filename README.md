@@ -6,12 +6,12 @@ A Makefile alternative / task runner.
 
 ## Build
 - Run `go build -o gomake-bootstrap.exe`
-- Run `gomake-bootstrap all` to build `gomake.exe` using the Makefile.
+- Run `gomake-bootstrap all` to build `gomake.exe` using the `make.gomake` file.
 
 ## Usage
-- See [Makefile](./Makefile) for example `gomake` readable makefiles.
+- See [make.gomake](./make.gomake) for an example of a `gomake` gomake file.
 - Run `gomake function_name` to execute the specified function.
-- Optionally specify the file path: `gomake ./makefile function_name`
+- Optionally specify the file path: `gomake ./make.gomake function_name`
 
 ```
 ## This is a comment
