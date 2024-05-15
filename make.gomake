@@ -26,8 +26,6 @@ prebuild() {
 }
 
 all() {
-    @fmt
-    @lint
-    @test
+    @prebuild
     @build
 }
