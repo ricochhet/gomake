@@ -95,7 +95,9 @@ func ParseText(s string) ([]FunctionBlock, error) {
 		}
 
 		if currentBlock != nil {
-			currentBlock.Commands = parseCallers(*currentBlock, blocks, line)
+			commands, params := parseCallers(*currentBlock, blocks, line)
+			currentBlock.Commands = commands
+			currentBlock.Params = append(currentBlock.Params, params...)
 		}
 	}
 
@@ -162,14 +164,17 @@ func replaceArrayWithArray(original string, oldArray []string, newArray []string
 	return original
 }
 
-func parseCallers(block FunctionBlock, blocks []FunctionBlock, line string) []string {
+func parseCallers(block FunctionBlock, blocks []FunctionBlock, line string) ([]string, []string) {
 	var commands []string
+
+	var params []string
 
 	for _, command := range append(block.Commands, line) {
 		if callerName := strings.TrimPrefix(command, Caller); strings.HasPrefix(command, Caller) {
 			for _, b := range blocks {
 				if b.Name == callerName {
 					commands = append(commands, b.Commands...)
+					params = append(params, b.Params...)
 				}
 			}
 		} else {
@@ -177,7 +182,7 @@ func parseCallers(block FunctionBlock, blocks []FunctionBlock, line string) []st
 		}
 	}
 
-	return commands
+	return commands, params
 }
 
 func parseBlockWithParams(s string) (string, []string) {

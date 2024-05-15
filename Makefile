@@ -22,6 +22,7 @@ prebuild() {
     @fmt
     @lint
     @test
+    @deadcode
 }
 
 all() {
