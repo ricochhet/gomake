@@ -24,9 +24,9 @@ import (
 )
 
 var (
-	errNoMakefilePath  = errors.New("no makefile path specified")
-	errNoFunctionName  = errors.New("no function name specified")
-	errInvalidFileType = errors.New("invalid file type, expects: .gomake")
+	ErrNoMakefilePath  = errors.New("no makefile path specified")
+	ErrNoFunctionName  = errors.New("no function name specified")
+	ErrInvalidFileType = errors.New("invalid file type, expects: .gomake")
 )
 
 func Errr(err error) {

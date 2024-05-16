@@ -1,3 +1,21 @@
+/*
+ * gomake
+ * Copyright (C) 2024 gomake contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package block
 
 import (
@@ -6,7 +24,7 @@ import (
 	"github.com/ricochhet/gomake/object"
 )
 
-var errBlockNotFound = errors.New("function block was not found")
+var ErrBlockNotFound = errors.New("function block was not found")
 
 func GetBlock(blocks []object.FunctionBlock, blockName string) (object.FunctionBlock, error) {
 	for _, block := range blocks {
@@ -15,5 +33,5 @@ func GetBlock(blocks []object.FunctionBlock, blockName string) (object.FunctionB
 		}
 	}
 
-	return object.FunctionBlock{}, errBlockNotFound
+	return object.FunctionBlock{}, ErrBlockNotFound
 }

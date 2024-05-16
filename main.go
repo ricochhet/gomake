@@ -31,7 +31,7 @@ import (
 //nolint:cyclop // wontfix
 func main() {
 	if flags.Function == "" {
-		Errr(errNoFunctionName)
+		Errr(ErrNoFunctionName)
 	}
 
 	if flags.Path == "" {
@@ -39,13 +39,13 @@ func main() {
 	}
 
 	if filepath.Ext(flags.Path) != flags.Extension {
-		Errr(errInvalidFileType)
+		Errr(ErrInvalidFileType)
 		return
 	}
 
 	file, err := os.ReadFile(flags.Path)
 	if err != nil && flags.Path == "" {
-		Errr(errNoMakefilePath)
+		Errr(ErrNoMakefilePath)
 		return
 	}
 

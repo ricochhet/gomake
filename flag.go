@@ -25,7 +25,7 @@ import (
 	aflag "github.com/ricochhet/gomake/flag"
 )
 
-var errTooFewArguments = errors.New("too few arguments for execution")
+var ErrTooFewArguments = errors.New("too few arguments for execution")
 
 var (
 	flags    *aflag.Flags = Newflag()    //nolint:gochecknoglobals // wontfix
@@ -48,7 +48,7 @@ func init() {
 	required := 2
 
 	if len(os.Args) == 0 {
-		panic(errTooFewArguments)
+		panic(ErrTooFewArguments)
 	}
 
 	if os.Args[1] == "dump" {
@@ -58,7 +58,7 @@ func init() {
 	}
 
 	if len(os.Args) < required {
-		panic(errTooFewArguments)
+		panic(ErrTooFewArguments)
 	}
 
 	if len(os.Args) == required {
