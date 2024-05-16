@@ -6,8 +6,8 @@ import (
 	"github.com/ricochhet/gomake/parser"
 )
 
-func Interpret(s string, fname string, args []string) (object.FunctionBlock, error) {
-	blocks, err := parser.ParseText(string(s))
+func Interpret(text string, fname string, args []string) (object.FunctionBlock, error) {
+	blocks, err := parser.ParseText(text)
 	if err != nil {
 		return object.FunctionBlock{}, err
 	}

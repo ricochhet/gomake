@@ -35,12 +35,13 @@ func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock
 	return parsedBlock, nil
 }
 
+//nolint:gocognit,gocyclo,cyclop // wontfix
 func ParseText(text string) ([]object.FunctionBlock, error) {
 	blocks := []object.FunctionBlock{}
 
 	var currentBlock *object.FunctionBlock
 
-	defaultDir, err := os.Getwd()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
@@ -55,66 +56,82 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 			for scanner.CurrentRune != token.TokenNewLine && scanner.CurrentRune != 0 {
 				scanner.ReadNext()
 			}
+
 			continue
 		}
 
 		if scanner.CurrentRune == token.TokenLeftBracket {
 			scanner.ReadNext()
+
 			function = true
+
 			continue
 		}
 
 		if scanner.CurrentRune == token.TokenRightBracket {
 			scanner.ReadNext()
+
 			if currentBlock != nil {
 				blocks = append(blocks, *currentBlock)
 				currentBlock = nil
 			}
+
 			function = false
+
 			continue
 		}
 
 		if scanner.IsIndentifiable(scanner.CurrentRune) && !function {
 			blockName, blockParams := scanner.ScanBlockWithParams()
+
 			currentBlock = &object.FunctionBlock{
 				Name:      blockName,
 				Params:    blockParams,
 				Commands:  make([]object.Command, 0),
-				Directory: defaultDir,
+				Directory: cwd,
 			}
+
 			continue
 		}
 
-		if currentBlock != nil && function {
-			switch scanner.CurrentRune {
-			case token.TokenDirectory:
-				scanner.ReadNext()
-				identifier := scanner.ScanToEndOfLine()
-				if identifier == "" {
-					currentBlock.Directory = defaultDir
-				} else {
-					currentBlock.Directory = identifier
-				}
-				continue
-			case token.TokenCaller:
-				scanner.ReadNext()
-				callerName, callerParams := scanner.ScanBlockWithParams()
-				if err := currentBlock.SetCallerBlock(blocks, callerName, callerParams); err != nil {
-					return nil, err
-				}
-				continue
-			default:
-				command := scanner.ScanToEndOfLine()
-				if directory, err := object.SetBlockDirectory(*currentBlock); err == nil {
-					currentBlock.Commands = append(currentBlock.Commands, object.Command{Command: command, Directory: directory})
-				} else {
-					return nil, err
-				}
-				continue
-			}
+		if currentBlock == nil || !function {
+			scanner.ReadNext()
+			continue
 		}
 
-		scanner.ReadNext()
+		switch scanner.CurrentRune {
+		case token.TokenDirectory:
+			scanner.ReadNext()
+
+			identifier := scanner.ScanToEndOfLine()
+
+			if identifier == "" {
+				currentBlock.Directory = cwd
+			} else {
+				currentBlock.Directory = identifier
+			}
+
+			continue
+		case token.TokenCaller:
+			scanner.ReadNext()
+
+			callerName, callerParams := scanner.ScanBlockWithParams()
+			if err := currentBlock.SetCallerBlock(blocks, callerName, callerParams); err != nil {
+				return nil, err
+			}
+
+			continue
+		default:
+			command := scanner.ScanToEndOfLine()
+
+			if directory, err := object.SetBlockDirectory(*currentBlock); err == nil {
+				currentBlock.Commands = append(currentBlock.Commands, object.Command{Command: command, Directory: directory})
+			} else {
+				return nil, err
+			}
+
+			continue
+		}
 	}
 
 	return blocks, nil

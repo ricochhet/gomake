@@ -13,8 +13,9 @@ type Scanner struct {
 }
 
 func NewScanner(text string) *Scanner {
-	s := &Scanner{Text: text}
+	s := &Scanner{Text: text, Position: 0, CurrentRune: 0}
 	s.ReadNext()
+
 	return s
 }
 
@@ -27,6 +28,7 @@ func (s *Scanner) ReadNext() {
 	}
 }
 
+//nolint:lll // wontfix
 func (s *Scanner) SkipWhitespace() {
 	for s.CurrentRune != 0 && (s.CurrentRune == token.TokenSpace || s.CurrentRune == token.TokenTab || s.CurrentRune == token.TokenNewLine || s.CurrentRune == token.TokenReturn) {
 		s.ReadNext()
@@ -39,15 +41,8 @@ func (s *Scanner) ReadWhile(predicate func(rune) bool) string {
 		result.WriteRune(s.CurrentRune)
 		s.ReadNext()
 	}
-	return result.String()
-}
 
-func (s *Scanner) Look(n int) rune {
-	look := s.Position + n
-	if look < len(s.Text) {
-		return rune(s.Text[look])
-	}
-	return 0
+	return result.String()
 }
 
 func (s *Scanner) IsIndentifiable(r rune) bool {
@@ -74,9 +69,12 @@ func (s *Scanner) ScanToEndOfLine() string {
 
 func (s *Scanner) ScanBlockWithParams() (string, []string) {
 	blockName := s.ScanIdentifier()
+
 	if s.CurrentRune == token.TokenLeftParen {
 		s.ReadNext()
+
 		params := make([]string, 0)
+
 		for {
 			if s.CurrentRune == token.TokenRightParen {
 				s.ReadNext()
@@ -84,8 +82,11 @@ func (s *Scanner) ScanBlockWithParams() (string, []string) {
 			}
 
 			s.SkipWhitespace()
+
 			param := s.ScanToDelimiter()
+
 			params = append(params, param)
+
 			s.SkipWhitespace()
 
 			if s.CurrentRune == token.TokenDelimiter {
@@ -94,8 +95,11 @@ func (s *Scanner) ScanBlockWithParams() (string, []string) {
 				break
 			}
 		}
+
 		s.ReadNext()
+
 		return blockName, params
 	}
+
 	return blockName, nil
 }

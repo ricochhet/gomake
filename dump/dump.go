@@ -7,9 +7,10 @@ import (
 )
 
 func Dump(block object.FunctionBlock) (string, error) {
-	if marshal, err := json.MarshalIndent(block, "", "\t"); err == nil {
+	marshal, err := json.MarshalIndent(block, "", "\t")
+	if err == nil {
 		return string(marshal), nil
-	} else {
-		return "", err
 	}
+
+	return "", err
 }
