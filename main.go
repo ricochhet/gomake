@@ -19,12 +19,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/ricochhet/gomake/parser"
+	"github.com/ricochhet/gomake/dump"
+	"github.com/ricochhet/gomake/interpret"
 	"github.com/ricochhet/gomake/process"
 )
 
@@ -54,15 +54,15 @@ func main() {
 		return
 	}
 
-	block, err := parser.GetBlock(string(file), flags.Function, flags.Arguments)
+	block, err := interpret.Interpret(string(file), flags.Function, flags.Arguments)
 	if err != nil {
 		Errr(err)
 		return
 	}
 
-	if flags.Debug {
-		if marshal, err := json.MarshalIndent(block, "", "\t"); err == nil {
-			fmt.Println(string(marshal))
+	if flags.Dump {
+		if data, err := dump.Dump(block); err == nil {
+			fmt.Println(data)
 			return
 		}
 

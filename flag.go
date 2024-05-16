@@ -34,7 +34,7 @@ var (
 		Function:  "",
 		Arguments: []string{},
 		Extension: ".gomake",
-		Debug:     false,
+		Dump:      false,
 	}
 )
 
@@ -51,10 +51,10 @@ func init() {
 		panic(errTooFewArguments)
 	}
 
-	if os.Args[1] == "debug" {
+	if os.Args[1] == "dump" {
 		start++
 		required++
-		flags.Debug = true
+		flags.Dump = true
 	}
 
 	if len(os.Args) < required {

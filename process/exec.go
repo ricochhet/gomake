@@ -24,10 +24,10 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/ricochhet/gomake/parser"
+	"github.com/ricochhet/gomake/object"
 )
 
-func Exec(commands []parser.Command) error {
+func Exec(commands []object.Command) error {
 	var shell, flag string
 	if runtime.GOOS == "windows" {
 		shell = "cmd"

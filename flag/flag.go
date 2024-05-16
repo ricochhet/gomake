@@ -23,5 +23,5 @@ type Flags struct {
 	Function  string
 	Arguments []string
 	Extension string
-	Debug     bool
+	Dump      bool
 }
