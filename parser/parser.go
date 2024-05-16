@@ -196,13 +196,11 @@ func checkForEmptyBlock(block FunctionBlock) error {
 }
 
 func replaceArrayWithArray(original string, oldArray []string, newArray []string) string {
-	// Create a map of old to new replacements
 	replacements := make(map[string]string)
 	for i := range oldArray {
 		replacements[oldArray[i]] = newArray[i]
 	}
 
-	// Replace each old string with the corresponding new string
 	for old, new := range replacements {
 		original = strings.ReplaceAll(original, old, new)
 	}
@@ -216,13 +214,33 @@ func parseCallers(blocks []FunctionBlock, line string) ([]Command, []string) {
 	var params []string
 
 	if strings.HasPrefix(line, Caller) {
-		callerName := strings.TrimPrefix(line, Caller)
+		callerNameWithArgs, callerArgs := parseBlockWithParams(line)
+		callerName := strings.TrimPrefix(callerNameWithArgs, Caller)
 
 		for _, block := range blocks {
 			if block.Name == callerName {
-				commands = append(commands, block.Commands...)
+				var parsedBlock FunctionBlock
 
-				params = append(params, block.Params...)
+				parsedBlock.Name = block.Name
+				parsedBlock.Directory = block.Directory
+
+				for _, command := range block.Commands {
+					if len(block.Params) != 0 && len(callerArgs) >= len(block.Params) {
+						parsedCommand := replaceArrayWithArray(command.Command, block.Params, callerArgs)
+						parsedBlock.Commands = append(parsedBlock.Commands, Command{
+							Command:   parsedCommand,
+							Directory: command.Directory,
+						})
+					} else {
+						parsedBlock.Commands = append(parsedBlock.Commands, command)
+						parsedBlock.Params = block.Params
+					}
+
+				}
+
+				commands = append(commands, parsedBlock.Commands...)
+
+				params = append(params, parsedBlock.Params...)
 			}
 		}
 	} else {
