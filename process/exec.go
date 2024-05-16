@@ -39,7 +39,11 @@ func Exec(commands []parser.Command) error {
 
 	for _, cmd := range commands {
 		fmt.Printf("gomake: executing command: %s in directory: %s\n", cmd.Command, cmd.Directory)
-		command := exec.Command(shell, flag, cmd.Command)
+
+		args := splitCommand(cmd.Command)
+		args = append([]string{flag}, args...)
+
+		command := exec.Command(shell, args...)
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
 		command.Dir = cmd.Directory
@@ -50,4 +54,36 @@ func Exec(commands []parser.Command) error {
 	}
 
 	return nil
+}
+
+func splitCommand(command string) []string {
+	var args []string
+
+	var arg string
+
+	var inQuote bool
+
+	for _, char := range command {
+		if char == '"' {
+			inQuote = !inQuote
+			continue
+		}
+
+		if char == ' ' && !inQuote {
+			if arg != "" {
+				args = append(args, arg)
+				arg = ""
+			}
+
+			continue
+		}
+
+		arg += string(char)
+	}
+
+	if arg != "" {
+		args = append(args, arg)
+	}
+
+	return args
 }

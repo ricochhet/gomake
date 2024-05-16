@@ -34,6 +34,7 @@ var (
 		Function:  "",
 		Arguments: []string{},
 		Extension: ".gomake",
+		Debug:     false,
 	}
 )
 
@@ -43,18 +44,29 @@ func Newflag() *aflag.Flags {
 
 //nolint:gochecknoinits // wontfix
 func init() {
+	start := 1
 	required := 2
+
+	if len(os.Args) == 0 {
+		panic(errTooFewArguments)
+	}
+
+	if os.Args[1] == "debug" {
+		start++
+		required++
+		flags.Debug = true
+	}
 
 	if len(os.Args) < required {
 		panic(errTooFewArguments)
 	}
 
 	if len(os.Args) == required {
-		flags.Function = os.Args[1]
-		flags.Arguments = os.Args[2:]
+		flags.Function = os.Args[start]
+		flags.Arguments = os.Args[start+1:]
 	} else {
-		flags.Path = os.Args[1]
-		flags.Function = os.Args[2]
-		flags.Arguments = os.Args[3:]
+		flags.Path = os.Args[start]
+		flags.Function = os.Args[start+1]
+		flags.Arguments = os.Args[start+2:]
 	}
 }

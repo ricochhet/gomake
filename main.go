@@ -19,6 +19,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -26,6 +28,7 @@ import (
 	"github.com/ricochhet/gomake/process"
 )
 
+//nolint:cyclop // wontfix
 func main() {
 	if flags.Function == "" {
 		Errr(errNoFunctionName)
@@ -54,6 +57,17 @@ func main() {
 	block, err := parser.GetBlock(string(file), flags.Function, flags.Arguments)
 	if err != nil {
 		Errr(err)
+		return
+	}
+
+	if flags.Debug {
+		if marshal, err := json.MarshalIndent(block, "", "\t"); err == nil {
+			fmt.Println(string(marshal))
+			return
+		}
+
+		Errr(err)
+
 		return
 	}
 

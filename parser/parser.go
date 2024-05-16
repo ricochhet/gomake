@@ -27,15 +27,15 @@ import (
 )
 
 type Command struct {
-	Directory string
-	Command   string
+	Directory string `json:"directory"`
+	Command   string `json:"command"`
 }
 
 type FunctionBlock struct {
-	Name      string
-	Params    []string
-	Commands  []Command
-	Directory string
+	Name      string    `json:"name"`
+	Params    []string  `json:"params"`
+	Commands  []Command `json:"commands"`
+	Directory string    `json:"directory"`
 }
 
 const (
@@ -196,8 +196,15 @@ func checkForEmptyBlock(block FunctionBlock) error {
 }
 
 func replaceArrayWithArray(original string, oldArray []string, newArray []string) string {
-	for i, oldString := range oldArray {
-		original = strings.ReplaceAll(original, oldString, newArray[i])
+	// Create a map of old to new replacements
+	replacements := make(map[string]string)
+	for i := range oldArray {
+		replacements[oldArray[i]] = newArray[i]
+	}
+
+	// Replace each old string with the corresponding new string
+	for old, new := range replacements {
+		original = strings.ReplaceAll(original, old, new)
 	}
 
 	return original
@@ -210,6 +217,7 @@ func parseCallers(blocks []FunctionBlock, line string) ([]Command, []string) {
 
 	if strings.HasPrefix(line, Caller) {
 		callerName := strings.TrimPrefix(line, Caller)
+
 		for _, block := range blocks {
 			if block.Name == callerName {
 				commands = append(commands, block.Commands...)
