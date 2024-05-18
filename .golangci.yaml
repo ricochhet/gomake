@@ -31,7 +31,6 @@ linters-settings:
                 allow:
                     - $gostd
                     - github.com/ricochhet/gomake
-                    - github.com/google/go-cmp/cmp
 issues:
     exclude-dirs:
         - thirdparty/
