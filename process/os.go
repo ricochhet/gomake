@@ -1,6 +1,6 @@
 package process
 
-var KnownOS = []string{
+var KnownOS = []string{ //nolint:gochecknoglobals // wontfix
 	"aix",
 	"android",
 	"darwin",

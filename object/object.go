@@ -26,24 +26,35 @@ import (
 )
 
 type Command struct {
-	OS        string `json:"os"`
-	Directory string `json:"directory"`
-	Command   string `json:"command"`
+	OS         string     `json:"os"`
+	Directory  string     `json:"directory"`
+	Command    string     `json:"command"`
+	Expression Expression `json:"expression"`
 }
 
 type FunctionBlock struct {
-	Name      string    `json:"name"`
-	Params    []string  `json:"params"`
-	Commands  []Command `json:"commands"`
-	OS        string    `json:"os"`
-	Directory string    `json:"directory"`
+	Name       string     `json:"name"`
+	Params     []string   `json:"params"`
+	Commands   []Command  `json:"commands"`
+	OS         string     `json:"os"`
+	Directory  string     `json:"directory"`
+	Expression Expression `json:"expression"`
+}
+
+type Expression struct {
+	OperandA  string `json:"operandA"`
+	OperandB  string `json:"operandB"`
+	Operation int    `json:"operation"`
+	Result    bool   `json:"result"`
 }
 
 func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, callerName string, callerParams []string) error {
 	for _, block := range blocks {
+		//nolint:nestif // wontfix
 		if block.Name == callerName {
 			directory, err := SetBlockDirectory(block)
-			os := block.Directory
+			os := block.Directory //nolint:varnamelen // wontfix
+			expr := block.Expression
 
 			if err != nil {
 				return err
@@ -51,8 +62,12 @@ func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, caller
 
 			for _, cmd := range block.Commands {
 				commandText := cmd.Command
+				commandExpr := cmd.Expression
+
 				if len(callerParams) != 0 {
 					commandText = SetFunctionParams(cmd.Command, block.Params, callerParams)
+					commandExpr.OperandA = SetFunctionParams(cmd.Expression.OperandA, block.Params, callerParams)
+					commandExpr.OperandB = SetFunctionParams(cmd.Expression.OperandB, block.Params, callerParams)
 				}
 
 				commandDirectory := cmd.Directory
@@ -65,10 +80,15 @@ func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, caller
 					commandOS = os
 				}
 
+				if commandExpr.OperandA == "" && commandExpr.OperandB == "" {
+					commandExpr = expr
+				}
+
 				currentBlock.Commands = append(currentBlock.Commands, Command{
-					Command:   commandText,
-					Directory: commandDirectory,
-					OS:        commandOS,
+					Command:    commandText,
+					Directory:  commandDirectory,
+					OS:         commandOS,
+					Expression: commandExpr,
 				})
 			}
 

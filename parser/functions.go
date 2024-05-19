@@ -22,7 +22,12 @@ func ParseCommand(scanner *scanner.Scanner, currentBlock *object.FunctionBlock) 
 
 	os := object.SetBlockOperatingSystem(*currentBlock)
 
-	currentBlock.Commands = append(currentBlock.Commands, object.Command{Command: command, OS: os, Directory: directory})
+	currentBlock.Commands = append(currentBlock.Commands, object.Command{
+		Command:    command,
+		OS:         os,
+		Directory:  directory,
+		Expression: currentBlock.Expression,
+	})
 
 	return nil
 }

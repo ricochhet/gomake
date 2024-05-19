@@ -45,6 +45,10 @@ func Exec(commands []object.Command) error {
 			return errInvalidPlatformArchitecture
 		}
 
+		if !cmd.Expression.Result {
+			return nil
+		}
+
 		fmt.Printf("gomake: executing command: %s in directory: %s\n", cmd.Command, cmd.Directory)
 
 		args := splitCommand(cmd.Command)

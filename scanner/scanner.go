@@ -99,18 +99,26 @@ func (s *Scanner) ScanToLastOccurrence(target rune) string {
 	lastOccurrence := -1
 
 	for s.Position < len(s.Text) {
-		if rune(s.Text[s.Position]) == target {
+		currentChar := rune(s.Text[s.Position])
+
+		if currentChar == target {
 			lastOccurrence = s.Position
 		}
+
+		if currentChar == token.TokenNewLine || currentChar == token.TokenReturn || currentChar == 0 {
+			break
+		}
+
 		s.Position++
 	}
 
 	if lastOccurrence != -1 {
 		s.Position = lastOccurrence + 1
-		return string(s.Text[start:lastOccurrence])
+
+		return s.Text[start:lastOccurrence]
 	}
 
-	return string(s.Text[start:])
+	return s.Text[start:]
 }
 
 func (s *Scanner) Peek(n int) rune {
@@ -168,4 +176,33 @@ func (s *Scanner) ScanBlockWithParams() (string, []string) {
 	}
 
 	return blockName, nil
+}
+
+func (s *Scanner) ScanParams() []string {
+	params := make([]string, 0)
+
+	for {
+		if s.CurrentRune == token.TokenRightParen {
+			s.ReadNext()
+			break
+		}
+
+		s.SkipWhitespace()
+
+		param := s.ScanToDelimiter()
+
+		params = append(params, param)
+
+		s.SkipWhitespace()
+
+		if s.CurrentRune == token.TokenDelimiter {
+			s.ReadNext()
+		} else {
+			break
+		}
+	}
+
+	s.ReadNext()
+
+	return params
 }

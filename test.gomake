@@ -1,0 +1,10 @@
+__base(param1, param2) {
+	@(eq:{param1},{param2})
+	echo __base
+}
+
+test() {
+	@__base(hello,hello)
+	echo test
+}
+dirtest() {}

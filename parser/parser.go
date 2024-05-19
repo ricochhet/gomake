@@ -34,11 +34,12 @@ var (
 
 func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock, error) {
 	parsedBlock := object.FunctionBlock{
-		Name:      block.Name,
-		Params:    block.Params,
-		Commands:  make([]object.Command, 0),
-		OS:        block.OS,
-		Directory: block.Directory,
+		Name:       block.Name,
+		Params:     block.Params,
+		Commands:   make([]object.Command, 0),
+		OS:         block.OS,
+		Directory:  block.Directory,
+		Expression: block.Expression,
 	}
 
 	if len(block.Params) != len(args) {
@@ -47,9 +48,10 @@ func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock
 
 	for _, cmd := range block.Commands {
 		parsedBlock.Commands = append(parsedBlock.Commands, object.Command{
-			OS:        cmd.OS,
-			Command:   object.SetFunctionParams(cmd.Command, block.Params, args),
-			Directory: cmd.Directory,
+			OS:         cmd.OS,
+			Command:    object.SetFunctionParams(cmd.Command, block.Params, args),
+			Directory:  cmd.Directory,
+			Expression: ParseExpressionResult(cmd.Expression),
 		})
 	}
 
@@ -58,7 +60,7 @@ func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock
 	return parsedBlock, nil
 }
 
-//nolint:gocognit,gocyclo,cyclop // wontfix
+//nolint:gocognit,gocyclo,cyclop,funlen // wontfix
 func ParseText(text string) ([]object.FunctionBlock, error) {
 	blocks := []object.FunctionBlock{}
 
@@ -108,11 +110,12 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 			blockName, blockParams := scanner.ScanBlockWithParams()
 
 			currentBlock = &object.FunctionBlock{
-				Name:      blockName,
-				Params:    blockParams,
-				Commands:  make([]object.Command, 0),
-				OS:        "all",
-				Directory: cwd,
+				Name:       blockName,
+				Params:     blockParams,
+				Commands:   make([]object.Command, 0),
+				OS:         "all",
+				Directory:  cwd,
+				Expression: object.Expression{}, //nolint:exhaustruct // wontfix
 			}
 
 			continue
@@ -131,6 +134,7 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 			case token.TokenDirectory:
 				return nil, ErrOutdatedDirectorySetter
 			case token.TokenLeftParen:
+				//nolint:mnd // wontfix
 				switch scanner.Peek(0) {
 				case 'c':
 					if scanner.PeekAhead(3) == "cd:" {
@@ -140,18 +144,31 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 				case 'o':
 					if scanner.PeekAhead(3) == "os:" {
 						scanner.ReadAhead(3)
+
 						if err := ParseOperatingSystem(scanner, currentBlock); err != nil {
 							return nil, err
 						}
 					}
+				case 'e':
+					if scanner.PeekAhead(3) == "eq:" {
+						scanner.ReadAhead(3)
+						ParseExpression(scanner, currentBlock, 0)
+					}
+				case 'n':
+					if scanner.PeekAhead(4) == "neq:" {
+						scanner.ReadAhead(4)
+						ParseExpression(scanner, currentBlock, 1)
+					}
 				default:
 					scanner.ScanToEndOfLine()
 				}
+
 				continue
 			default:
 				if err := ParseCaller(scanner, currentBlock, blocks); err != nil {
 					return nil, err
 				}
+
 				continue
 			}
 		default:
