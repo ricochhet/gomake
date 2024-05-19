@@ -247,6 +247,7 @@ func (s *Scanner) ScanKeyValueParams() []KeyValue {
 		s.ReadNext()
 
 		key := s.ScanToTarget(token.TokenColon)
+
 		if s.CurrentRune == token.TokenColon {
 			s.ReadNext()
 		}

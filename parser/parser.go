@@ -120,12 +120,13 @@ func ParseText(text string) ([]object.StatefulFunctionBlock, error) {
 			blockName, blockParams := scanner.ScanBlockWithParams()
 
 			currentBlock = &object.StatefulFunctionBlock{
-				Name:       blockName,
-				Params:     blockParams,
-				Commands:   make([]object.Command, 0),
-				OS:         "all",
-				Directory:  cwd,
-				Expression: object.Expression{}, //nolint:exhaustruct // wontfix
+				Name:        blockName,
+				Params:      blockParams,
+				Commands:    make([]object.Command, 0),
+				OS:          "all",
+				Directory:   cwd,
+				Expression:  object.Expression{}, //nolint:exhaustruct // wontfix
+				Environment: make([]string, 0),
 			}
 
 			continue

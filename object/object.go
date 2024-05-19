@@ -56,6 +56,7 @@ type Expression struct {
 	Result    bool   `json:"result"`
 }
 
+//nolint:cyclop // wontfix
 func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunctionBlock, callerName string, callerParams []string) error {
 	for _, block := range blocks {
 		//nolint:nestif // wontfix
@@ -152,6 +153,7 @@ func SetEnvironmentVariables(original string) string {
 	variables := scanIdentifiers(original)
 
 	for _, variable := range variables {
+		//nolint:lll // wontfix
 		original = strings.ReplaceAll(original, string(token.TokenString)+string(token.TokenLeftParen)+variable+string(token.TokenRightParen), os.Getenv(variable))
 	}
 
@@ -159,7 +161,7 @@ func SetEnvironmentVariables(original string) string {
 }
 
 func scanIdentifiers(input string) []string {
-	var items []string
+	items := make([]string, 0)
 	index := 0
 
 	for {
