@@ -30,11 +30,6 @@ type Scanner struct {
 	CurrentRune rune
 }
 
-type KeyValue struct {
-	Key   string
-	Value string
-}
-
 func NewScanner(text string) *Scanner {
 	s := &Scanner{Text: text, Position: 0, CurrentRune: 0}
 	s.ReadNext()
@@ -87,12 +82,6 @@ func (s *Scanner) ScanIdentifier() string {
 	})
 }
 
-func (s *Scanner) ScanToTarget(target rune) string {
-	return s.ReadWhile(func(r rune) bool {
-		return r != target
-	})
-}
-
 func (s *Scanner) ScanToUnescaped(target rune) string {
 	return s.ReadWhile(func(r rune) bool {
 		if s.Peek(-2) != token.TokenEscape && r == target {
@@ -107,33 +96,6 @@ func (s *Scanner) ScanToEndOfLine() string {
 	return s.ReadWhile(func(r rune) bool {
 		return r != token.TokenNewLine && r != token.TokenReturn && r != 0
 	})
-}
-
-func (s *Scanner) ScanToLastOccurrence(target rune) string {
-	start := s.Position
-	lastOccurrence := -1
-
-	for s.Position < len(s.Text) {
-		currentChar := rune(s.Text[s.Position])
-
-		if currentChar == target {
-			lastOccurrence = s.Position
-		}
-
-		if currentChar == token.TokenNewLine || currentChar == token.TokenReturn || currentChar == 0 {
-			break
-		}
-
-		s.Position++
-	}
-
-	if lastOccurrence != -1 {
-		s.Position = lastOccurrence + 1
-
-		return s.Text[start:lastOccurrence]
-	}
-
-	return s.Text[start:]
 }
 
 func (s *Scanner) Peek(n int) rune {
@@ -214,50 +176,6 @@ func (s *Scanner) ScanParams() []string {
 		param := s.ScanToUnescaped(token.TokenQuote)
 
 		params = append(params, param)
-
-		if s.Peek(0) == token.TokenDelimiter {
-			s.ReadNext()
-		}
-
-		s.SkipWhitespace()
-
-		if s.CurrentRune == token.TokenDelimiter {
-			s.ReadNext()
-		} else {
-			s.ReadNext()
-			break
-		}
-	}
-
-	s.ReadNext()
-
-	return params
-}
-
-func (s *Scanner) ScanKeyValueParams() []KeyValue {
-	params := make([]KeyValue, 0)
-
-	for {
-		if s.CurrentRune == token.TokenRightParen {
-			s.ReadNext()
-			break
-		}
-
-		s.SkipWhitespace()
-		s.ReadNext()
-
-		key := s.ScanToTarget(token.TokenColon)
-
-		if s.CurrentRune == token.TokenColon {
-			s.ReadNext()
-		}
-
-		value := s.ScanToUnescaped(token.TokenQuote)
-
-		params = append(params, KeyValue{
-			Key:   key,
-			Value: value,
-		})
 
 		if s.Peek(0) == token.TokenDelimiter {
 			s.ReadNext()
