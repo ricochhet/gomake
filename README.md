@@ -13,38 +13,37 @@ A Makefile alternative / task runner.
 - Run `gomake function_name` to execute the specified function.
 - Optionally specify the file path: `gomake ./make.gomake function_name`
 
-```
-## This is a comment
-
-example_function() {
-    echo Hello, World!
-}
-
-example_caller_in_function() {
-    @example_function
-}
-
-example_directory_switch_function() {
-    mkdir mydir1
-    ~./mydir1
-    mkdir subdir1
-}
-
-example_function_with_params({param1}, {param2}) {
-    echo {param1}, {param2}!
-}
-```
-
-...
+### Functions
 
 ```
-gomake example_function
+# This is a comment.
+task() {
+    ...
+}
 
-gomake example_caller_in_function
+```
 
-gomake example_directory_switch_function
+### Comparison
+```
+@(eq:aaa,bbb)
+# aaa == bbb = false
 
-gomake example_function_with_params Hello World
+@(neq:aaa,bbb)
+# aaa != bbb = true
+```
+
+### Directory
+```
+@(cd:./path/to/directory/)
+```
+
+### Operating System
+```
+# Command only runs on windows
+@(os:windows)
+
+# Command runs on all platforms
+@(os:all)
 ```
 
 # License
