@@ -26,12 +26,12 @@ import (
 
 var ErrBlockNotFound = errors.New("function block was not found")
 
-func GetBlock(blocks []object.FunctionBlock, blockName string) (object.FunctionBlock, error) {
+func GetBlock(blocks []object.StatefulFunctionBlock, blockName string) (object.StatefulFunctionBlock, error) {
 	for _, block := range blocks {
 		if block.Name == blockName {
 			return block, nil
 		}
 	}
 
-	return object.FunctionBlock{}, ErrBlockNotFound
+	return object.StatefulFunctionBlock{}, ErrBlockNotFound
 }

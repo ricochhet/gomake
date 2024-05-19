@@ -31,4 +31,6 @@ const (
 	TokenCaller       = '@'
 	TokenDirectory    = '~'
 	TokenComment      = '#'
+	TokenEscape       = '\\'
+	TokenQuote        = '"'
 )

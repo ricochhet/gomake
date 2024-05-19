@@ -32,13 +32,19 @@ type Command struct {
 	Expression Expression `json:"expression"`
 }
 
-type FunctionBlock struct {
+type StatefulFunctionBlock struct {
 	Name       string     `json:"name"`
 	Params     []string   `json:"params"`
 	Commands   []Command  `json:"commands"`
 	OS         string     `json:"os"`
 	Directory  string     `json:"directory"`
 	Expression Expression `json:"expression"`
+}
+
+type FunctionBlock struct {
+	Name     string    `json:"name"`
+	Params   []string  `json:"params"`
+	Commands []Command `json:"commands"`
 }
 
 type Expression struct {
@@ -48,7 +54,7 @@ type Expression struct {
 	Result    bool   `json:"result"`
 }
 
-func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, callerName string, callerParams []string) error {
+func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunctionBlock, callerName string, callerParams []string) error {
 	for _, block := range blocks {
 		//nolint:nestif // wontfix
 		if block.Name == callerName {
@@ -99,7 +105,7 @@ func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, caller
 	return nil
 }
 
-func SetBlockDirectory(block FunctionBlock) (string, error) {
+func SetBlockDirectory(block StatefulFunctionBlock) (string, error) {
 	if block.Directory == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -112,7 +118,7 @@ func SetBlockDirectory(block FunctionBlock) (string, error) {
 	return block.Directory, nil
 }
 
-func SetBlockOperatingSystem(block FunctionBlock) string {
+func SetBlockOperatingSystem(block StatefulFunctionBlock) string {
 	if block.OS == "" {
 		return "all"
 	}

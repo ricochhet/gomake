@@ -32,8 +32,16 @@ var (
 	ErrOutdatedDirectorySetter = errors.New("outdated directory setter, use @(cd:./path/)")
 )
 
-func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock, error) {
-	parsedBlock := object.FunctionBlock{
+func ParseBlock(block object.StatefulFunctionBlock) object.FunctionBlock {
+	return object.FunctionBlock{
+		Name:     block.Name,
+		Params:   block.Params,
+		Commands: block.Commands,
+	}
+}
+
+func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (object.StatefulFunctionBlock, error) {
+	parsedBlock := object.StatefulFunctionBlock{
 		Name:       block.Name,
 		Params:     block.Params,
 		Commands:   make([]object.Command, 0),
@@ -43,7 +51,7 @@ func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock
 	}
 
 	if len(block.Params) != len(args) {
-		return object.FunctionBlock{}, ErrTooFewArgumentsInBlock
+		return object.StatefulFunctionBlock{}, ErrTooFewArgumentsInBlock
 	}
 
 	for _, cmd := range block.Commands {
@@ -61,10 +69,10 @@ func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock
 }
 
 //nolint:gocognit,gocyclo,cyclop,funlen // wontfix
-func ParseText(text string) ([]object.FunctionBlock, error) {
-	blocks := []object.FunctionBlock{}
+func ParseText(text string) ([]object.StatefulFunctionBlock, error) {
+	blocks := []object.StatefulFunctionBlock{}
 
-	var currentBlock *object.FunctionBlock
+	var currentBlock *object.StatefulFunctionBlock
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -109,7 +117,7 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 		if scanner.IsIndentifiable(scanner.CurrentRune) && !function {
 			blockName, blockParams := scanner.ScanBlockWithParams()
 
-			currentBlock = &object.FunctionBlock{
+			currentBlock = &object.StatefulFunctionBlock{
 				Name:       blockName,
 				Params:     blockParams,
 				Commands:   make([]object.Command, 0),
@@ -140,7 +148,10 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 					if scanner.PeekAhead(3) == "cd:" {
 						scanner.ReadAhead(3)
 						scanner.SkipWhitespace()
-						ParseDirectory(scanner, currentBlock, cwd)
+
+						if err := ParseDirectory(scanner, currentBlock, cwd); err != nil {
+							return nil, err
+						}
 					}
 				case 'o':
 					if scanner.PeekAhead(3) == "os:" {

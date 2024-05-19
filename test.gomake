@@ -1,3 +1,5 @@
 test() {
-	@(eq: a, b)
+	@(cd:"directory")
+	@(os:"windows")
+	echo test
 }

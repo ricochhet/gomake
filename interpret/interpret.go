@@ -35,10 +35,10 @@ func Interpret(text string, fname string, args []string) (object.FunctionBlock, 
 		return object.FunctionBlock{}, err
 	}
 
-	parsedBlock, err := parser.ParseBlock(block, args)
+	parsedStatefulBlock, err := parser.ParseStatefulBlock(block, args)
 	if err != nil {
 		return object.FunctionBlock{}, err
 	}
 
-	return parsedBlock, nil
+	return parser.ParseBlock(parsedStatefulBlock), nil
 }

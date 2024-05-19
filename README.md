@@ -26,25 +26,25 @@ task() {
 
 ### Comparison
 ```
-@(eq:aaa,bbb)
+@(eq:"aaa","bbb")
 # aaa == bbb = false
 
-@(neq:aaa,bbb)
+@(neq:"aaa","bbb")
 # aaa != bbb = true
 ```
 
 ### Directory
 ```
-@(cd:./path/to/directory/)
+@(cd:"./path/to/directory/")
 ```
 
 ### Operating System
 ```
 # Command only runs on windows
-@(os:windows)
+@(os:"windows")
 
 # Command runs on all platforms
-@(os:all)
+@(os:"all")
 ```
 
 # License

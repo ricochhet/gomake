@@ -82,9 +82,13 @@ func (s *Scanner) ScanIdentifier() string {
 	})
 }
 
-func (s *Scanner) ScanToDelimiter() string {
+func (s *Scanner) ScanToUnescaped(target rune) string {
 	return s.ReadWhile(func(r rune) bool {
-		return r != token.TokenDelimiter && r != token.TokenLeftParen && r != token.TokenRightParen
+		if s.Peek(-2) != token.TokenEscape && r == target {
+			return false
+		}
+
+		return true
 	})
 }
 
@@ -156,16 +160,22 @@ func (s *Scanner) ScanBlockWithParams() (string, []string) {
 			}
 
 			s.SkipWhitespace()
+			s.ReadNext()
 
-			param := s.ScanToDelimiter()
+			param := s.ScanToUnescaped(token.TokenQuote)
 
 			params = append(params, param)
+
+			if s.Peek(0) == token.TokenDelimiter {
+				s.ReadNext()
+			}
 
 			s.SkipWhitespace()
 
 			if s.CurrentRune == token.TokenDelimiter {
 				s.ReadNext()
 			} else {
+				s.ReadNext()
 				break
 			}
 		}
@@ -188,16 +198,22 @@ func (s *Scanner) ScanParams() []string {
 		}
 
 		s.SkipWhitespace()
+		s.ReadNext()
 
-		param := s.ScanToDelimiter()
+		param := s.ScanToUnescaped(token.TokenQuote)
 
 		params = append(params, param)
+
+		if s.Peek(0) == token.TokenDelimiter {
+			s.ReadNext()
+		}
 
 		s.SkipWhitespace()
 
 		if s.CurrentRune == token.TokenDelimiter {
 			s.ReadNext()
 		} else {
+			s.ReadNext()
 			break
 		}
 	}

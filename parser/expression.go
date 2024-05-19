@@ -20,10 +20,14 @@ func ParseExpressionResult(expr object.Expression) object.Expression {
 	return parsedExpr
 }
 
-func ParseExpression(scanner *scanner.Scanner, currentBlock *object.FunctionBlock, operation int) {
+func ParseExpression(scanner *scanner.Scanner, currentBlock *object.StatefulFunctionBlock, operation int) {
 	scanner.ReadNext()
 	operands := scanner.ScanParams()
 	scanner.ScanToEndOfLine()
+
+	if len(operands) != 2 { //nolint:mnd // wontfix
+		return
+	}
 
 	currentBlock.Expression = object.Expression{
 		OperandA:  operands[0],
