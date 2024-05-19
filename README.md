@@ -12,6 +12,8 @@ A Makefile alternative / task runner.
 - See [make.gomake](./make.gomake) for an example of a `gomake` gomake file.
 - Run `gomake function_name` to execute the specified function.
 - Optionally specify the file path: `gomake ./make.gomake function_name`
+- Prepend `-dump` before additional commands to view the parsed function blocks.
+    - Example: `gomake -dump ...`
 
 ### Functions
 
@@ -20,7 +22,6 @@ A Makefile alternative / task runner.
 task() {
     ...
 }
-
 ```
 
 ### Comparison

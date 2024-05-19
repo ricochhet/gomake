@@ -139,11 +139,13 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 				case 'c':
 					if scanner.PeekAhead(3) == "cd:" {
 						scanner.ReadAhead(3)
+						scanner.SkipWhitespace()
 						ParseDirectory(scanner, currentBlock, cwd)
 					}
 				case 'o':
 					if scanner.PeekAhead(3) == "os:" {
 						scanner.ReadAhead(3)
+						scanner.SkipWhitespace()
 
 						if err := ParseOperatingSystem(scanner, currentBlock); err != nil {
 							return nil, err
@@ -152,11 +154,15 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 				case 'e':
 					if scanner.PeekAhead(3) == "eq:" {
 						scanner.ReadAhead(3)
+						scanner.SkipWhitespace()
+
 						ParseExpression(scanner, currentBlock, 0)
 					}
 				case 'n':
 					if scanner.PeekAhead(4) == "neq:" {
 						scanner.ReadAhead(4)
+						scanner.SkipWhitespace()
+
 						ParseExpression(scanner, currentBlock, 1)
 					}
 				default:
