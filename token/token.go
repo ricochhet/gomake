@@ -34,5 +34,5 @@ const (
 	TokenEscape       = '\\'
 	TokenQuote        = '"'
 	TokenColon        = ':'
-	TokenString       = '$'
+	TokenString       = '%'
 )

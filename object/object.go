@@ -22,6 +22,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ricochhet/gomake/scanner"
 	"github.com/ricochhet/gomake/token"
 )
 
@@ -150,40 +151,12 @@ func SetFunctionParams(original string, oldArray []string, newArray []string) st
 }
 
 func SetEnvironmentVariables(original string) string {
-	variables := scanIdentifiers(original)
+	variables := scanner.ScanVariables(original)
 
 	for _, variable := range variables {
 		//nolint:lll // wontfix
-		original = strings.ReplaceAll(original, string(token.TokenString)+string(token.TokenLeftParen)+variable+string(token.TokenRightParen), os.Getenv(variable))
+		original = strings.ReplaceAll(original, string(token.TokenString)+string(token.TokenLeftBracket)+variable+string(token.TokenRightBracket), os.Getenv(variable))
 	}
 
 	return original
-}
-
-func scanIdentifiers(input string) []string {
-	items := make([]string, 0)
-	index := 0
-
-	for {
-		start := strings.Index(input[index:], string(token.TokenString)+string(token.TokenLeftParen))
-		if start == -1 {
-			break
-		}
-
-		start += index
-
-		end := strings.Index(input[start:], string(token.TokenRightParen))
-		if end == -1 {
-			break
-		}
-
-		end += start
-
-		item := input[start+2 : end]
-		items = append(items, item)
-
-		index = end + 1
-	}
-
-	return items
 }

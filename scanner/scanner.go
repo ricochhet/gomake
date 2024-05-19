@@ -195,3 +195,31 @@ func (s *Scanner) ScanParams() []string {
 
 	return params
 }
+
+func ScanVariables(text string) []string {
+	variables := make([]string, 0)
+	index := 0
+
+	for {
+		start := strings.Index(text[index:], string(token.TokenString)+string(token.TokenLeftParen))
+		if start == -1 {
+			break
+		}
+
+		start += index
+
+		end := strings.Index(text[start:], string(token.TokenRightParen))
+		if end == -1 {
+			break
+		}
+
+		end += start
+
+		item := text[start+2 : end]
+		variables = append(variables, item)
+
+		index = end + 1
+	}
+
+	return variables
+}
