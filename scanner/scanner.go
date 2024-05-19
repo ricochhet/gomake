@@ -46,6 +46,15 @@ func (s *Scanner) ReadNext() {
 	}
 }
 
+func (s *Scanner) ReadAhead(n int) {
+	if s.Position+n-1 < len(s.Text) {
+		s.CurrentRune = rune(s.Text[s.Position+n-1])
+		s.Position += n
+	} else {
+		s.CurrentRune = 0
+	}
+}
+
 //nolint:lll // wontfix
 func (s *Scanner) SkipWhitespace() {
 	for s.CurrentRune != 0 && (s.CurrentRune == token.TokenSpace || s.CurrentRune == token.TokenTab || s.CurrentRune == token.TokenNewLine || s.CurrentRune == token.TokenReturn) {
@@ -83,6 +92,45 @@ func (s *Scanner) ScanToEndOfLine() string {
 	return s.ReadWhile(func(r rune) bool {
 		return r != token.TokenNewLine && r != token.TokenReturn && r != 0
 	})
+}
+
+func (s *Scanner) ScanToLastOccurrence(target rune) string {
+	start := s.Position
+	lastOccurrence := -1
+
+	for s.Position < len(s.Text) {
+		if rune(s.Text[s.Position]) == target {
+			lastOccurrence = s.Position
+		}
+		s.Position++
+	}
+
+	if lastOccurrence != -1 {
+		s.Position = lastOccurrence + 1
+		return string(s.Text[start:lastOccurrence])
+	}
+
+	return string(s.Text[start:])
+}
+
+func (s *Scanner) Peek(n int) rune {
+	peek := s.Position + n
+
+	if peek < len(s.Text) {
+		return rune(s.Text[peek])
+	}
+
+	return 0
+}
+
+func (s *Scanner) PeekAhead(n int) string {
+	end := s.Position + n
+
+	if end > len(s.Text) {
+		end = len(s.Text)
+	}
+
+	return s.Text[s.Position:end]
 }
 
 func (s *Scanner) ScanBlockWithParams() (string, []string) {

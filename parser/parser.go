@@ -27,13 +27,17 @@ import (
 	"github.com/ricochhet/gomake/token"
 )
 
-var ErrTooFewArgumentsInBlock = errors.New("too few arguments in block")
+var (
+	ErrTooFewArgumentsInBlock  = errors.New("too few arguments in block")
+	ErrOutdatedDirectorySetter = errors.New("outdated directory setter, use @(cd:./path/)")
+)
 
 func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock, error) {
 	parsedBlock := object.FunctionBlock{
 		Name:      block.Name,
 		Params:    block.Params,
 		Commands:  make([]object.Command, 0),
+		OS:        block.OS,
 		Directory: block.Directory,
 	}
 
@@ -43,6 +47,7 @@ func ParseBlock(block object.FunctionBlock, args []string) (object.FunctionBlock
 
 	for _, cmd := range block.Commands {
 		parsedBlock.Commands = append(parsedBlock.Commands, object.Command{
+			OS:        cmd.OS,
 			Command:   object.SetFunctionParams(cmd.Command, block.Params, args),
 			Directory: cmd.Directory,
 		})
@@ -106,6 +111,7 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 				Name:      blockName,
 				Params:    blockParams,
 				Commands:  make([]object.Command, 0),
+				OS:        "all",
 				Directory: cwd,
 			}
 
@@ -118,33 +124,38 @@ func ParseText(text string) ([]object.FunctionBlock, error) {
 		}
 
 		switch scanner.CurrentRune {
-		case token.TokenDirectory:
-			scanner.ReadNext()
-
-			identifier := scanner.ScanToEndOfLine()
-
-			if identifier == "" {
-				currentBlock.Directory = cwd
-			} else {
-				currentBlock.Directory = identifier
-			}
-
-			continue
 		case token.TokenCaller:
 			scanner.ReadNext()
 
-			callerName, callerParams := scanner.ScanBlockWithParams()
-			if err := currentBlock.SetCallerBlock(blocks, callerName, callerParams); err != nil {
-				return nil, err
+			switch scanner.CurrentRune {
+			case token.TokenDirectory:
+				return nil, ErrOutdatedDirectorySetter
+			case token.TokenLeftParen:
+				switch scanner.Peek(0) {
+				case 'c':
+					if scanner.PeekAhead(3) == "cd:" {
+						scanner.ReadAhead(3)
+						ParseDirectory(scanner, currentBlock, cwd)
+					}
+				case 'o':
+					if scanner.PeekAhead(3) == "os:" {
+						scanner.ReadAhead(3)
+						if err := ParseOperatingSystem(scanner, currentBlock); err != nil {
+							return nil, err
+						}
+					}
+				default:
+					scanner.ScanToEndOfLine()
+				}
+				continue
+			default:
+				if err := ParseCaller(scanner, currentBlock, blocks); err != nil {
+					return nil, err
+				}
+				continue
 			}
-
-			continue
 		default:
-			command := scanner.ScanToEndOfLine()
-
-			if directory, err := object.SetBlockDirectory(*currentBlock); err == nil {
-				currentBlock.Commands = append(currentBlock.Commands, object.Command{Command: command, Directory: directory})
-			} else {
+			if err := ParseCommand(scanner, currentBlock); err != nil {
 				return nil, err
 			}
 

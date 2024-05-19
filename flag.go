@@ -51,7 +51,7 @@ func init() {
 		panic(ErrTooFewArguments)
 	}
 
-	if os.Args[1] == "dump" {
+	if os.Args[1] == "-dump" {
 		start++
 		required++
 		flags.Dump = true

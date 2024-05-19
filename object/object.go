@@ -26,6 +26,7 @@ import (
 )
 
 type Command struct {
+	OS        string `json:"os"`
 	Directory string `json:"directory"`
 	Command   string `json:"command"`
 }
@@ -34,6 +35,7 @@ type FunctionBlock struct {
 	Name      string    `json:"name"`
 	Params    []string  `json:"params"`
 	Commands  []Command `json:"commands"`
+	OS        string    `json:"os"`
 	Directory string    `json:"directory"`
 }
 
@@ -41,6 +43,8 @@ func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, caller
 	for _, block := range blocks {
 		if block.Name == callerName {
 			directory, err := SetBlockDirectory(block)
+			os := block.Directory
+
 			if err != nil {
 				return err
 			}
@@ -56,9 +60,15 @@ func (currentBlock *FunctionBlock) SetCallerBlock(blocks []FunctionBlock, caller
 					commandDirectory = directory
 				}
 
+				commandOS := cmd.OS
+				if commandOS == "" {
+					commandOS = os
+				}
+
 				currentBlock.Commands = append(currentBlock.Commands, Command{
 					Command:   commandText,
 					Directory: commandDirectory,
+					OS:        commandOS,
 				})
 			}
 
@@ -80,6 +90,14 @@ func SetBlockDirectory(block FunctionBlock) (string, error) {
 	}
 
 	return block.Directory, nil
+}
+
+func SetBlockOperatingSystem(block FunctionBlock) string {
+	if block.OS == "" {
+		return "all"
+	}
+
+	return block.OS
 }
 
 func SetFunctionParams(original string, oldArray []string, newArray []string) string {

@@ -19,6 +19,7 @@
 package process
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -26,6 +27,8 @@ import (
 
 	"github.com/ricochhet/gomake/object"
 )
+
+var errInvalidPlatformArchitecture = errors.New("invalid platform architecture")
 
 func Exec(commands []object.Command) error {
 	var shell, flag string
@@ -38,6 +41,10 @@ func Exec(commands []object.Command) error {
 	}
 
 	for _, cmd := range commands {
+		if runtime.GOOS != cmd.OS && cmd.OS != "all" {
+			return errInvalidPlatformArchitecture
+		}
+
 		fmt.Printf("gomake: executing command: %s in directory: %s\n", cmd.Command, cmd.Directory)
 
 		args := splitCommand(cmd.Command)
