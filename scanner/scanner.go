@@ -30,6 +30,11 @@ type Scanner struct {
 	CurrentRune rune
 }
 
+type KeyValue struct {
+	Key   string
+	Value string
+}
+
 func NewScanner(text string) *Scanner {
 	s := &Scanner{Text: text, Position: 0, CurrentRune: 0}
 	s.ReadNext()
@@ -79,6 +84,12 @@ func (s *Scanner) IsIndentifiable(r rune) bool {
 func (s *Scanner) ScanIdentifier() string {
 	return s.ReadWhile(func(r rune) bool {
 		return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_'
+	})
+}
+
+func (s *Scanner) ScanToTarget(target rune) string {
+	return s.ReadWhile(func(r rune) bool {
+		return r != target
 	})
 }
 
@@ -203,6 +214,49 @@ func (s *Scanner) ScanParams() []string {
 		param := s.ScanToUnescaped(token.TokenQuote)
 
 		params = append(params, param)
+
+		if s.Peek(0) == token.TokenDelimiter {
+			s.ReadNext()
+		}
+
+		s.SkipWhitespace()
+
+		if s.CurrentRune == token.TokenDelimiter {
+			s.ReadNext()
+		} else {
+			s.ReadNext()
+			break
+		}
+	}
+
+	s.ReadNext()
+
+	return params
+}
+
+func (s *Scanner) ScanKeyValueParams() []KeyValue {
+	params := make([]KeyValue, 0)
+
+	for {
+		if s.CurrentRune == token.TokenRightParen {
+			s.ReadNext()
+			break
+		}
+
+		s.SkipWhitespace()
+		s.ReadNext()
+
+		key := s.ScanToTarget(token.TokenColon)
+		if s.CurrentRune == token.TokenColon {
+			s.ReadNext()
+		}
+
+		value := s.ScanToUnescaped(token.TokenQuote)
+
+		params = append(params, KeyValue{
+			Key:   key,
+			Value: value,
+		})
 
 		if s.Peek(0) == token.TokenDelimiter {
 			s.ReadNext()

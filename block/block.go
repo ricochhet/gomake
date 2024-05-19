@@ -24,7 +24,7 @@ import (
 	"github.com/ricochhet/gomake/object"
 )
 
-var ErrBlockNotFound = errors.New("function block was not found")
+var ErrBlockNotFound = errors.New("function block was not found or is malformed")
 
 func GetBlock(blocks []object.StatefulFunctionBlock, blockName string) (object.StatefulFunctionBlock, error) {
 	for _, block := range blocks {

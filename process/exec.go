@@ -59,6 +59,10 @@ func Exec(commands []object.Command) error {
 		command.Stderr = os.Stderr
 		command.Dir = cmd.Directory
 
+		if len(cmd.Environment) != 0 {
+			command.Env = append(command.Env, cmd.Environment...)
+		}
+
 		if err := command.Run(); err != nil {
 			return err
 		}

@@ -42,12 +42,13 @@ func ParseBlock(block object.StatefulFunctionBlock) object.FunctionBlock {
 
 func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (object.StatefulFunctionBlock, error) {
 	parsedBlock := object.StatefulFunctionBlock{
-		Name:       block.Name,
-		Params:     block.Params,
-		Commands:   make([]object.Command, 0),
-		OS:         block.OS,
-		Directory:  block.Directory,
-		Expression: block.Expression,
+		Name:        block.Name,
+		Params:      block.Params,
+		Commands:    make([]object.Command, 0),
+		OS:          block.OS,
+		Directory:   block.Directory,
+		Expression:  block.Expression,
+		Environment: block.Environment,
 	}
 
 	if len(block.Params) != len(args) {
@@ -56,10 +57,11 @@ func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (obje
 
 	for _, cmd := range block.Commands {
 		parsedBlock.Commands = append(parsedBlock.Commands, object.Command{
-			OS:         cmd.OS,
-			Command:    object.SetFunctionParams(cmd.Command, block.Params, args),
-			Directory:  cmd.Directory,
-			Expression: ParseExpressionResult(cmd.Expression),
+			OS:          cmd.OS,
+			Command:     object.SetFunctionParams(cmd.Command, block.Params, args),
+			Directory:   cmd.Directory,
+			Expression:  ParseExpressionResult(cmd.Expression),
+			Environment: cmd.Environment,
 		})
 	}
 
@@ -167,14 +169,25 @@ func ParseText(text string) ([]object.StatefulFunctionBlock, error) {
 						scanner.ReadAhead(3)
 						scanner.SkipWhitespace()
 
-						ParseExpression(scanner, currentBlock, 0)
+						if err := ParseExpression(scanner, currentBlock, 0); err != nil {
+							return nil, err
+						}
+					}
+
+					if scanner.PeekAhead(4) == "env:" {
+						scanner.ReadAhead(4)
+						scanner.SkipWhitespace()
+
+						ParseEnvironment(scanner, currentBlock)
 					}
 				case 'n':
 					if scanner.PeekAhead(4) == "neq:" {
 						scanner.ReadAhead(4)
 						scanner.SkipWhitespace()
 
-						ParseExpression(scanner, currentBlock, 1)
+						if err := ParseExpression(scanner, currentBlock, 1); err != nil {
+							return nil, err
+						}
 					}
 				default:
 					scanner.ScanToEndOfLine()

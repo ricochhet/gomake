@@ -26,19 +26,21 @@ import (
 )
 
 type Command struct {
-	OS         string     `json:"os"`
-	Directory  string     `json:"directory"`
-	Command    string     `json:"command"`
-	Expression Expression `json:"expression"`
+	OS          string     `json:"os"`
+	Directory   string     `json:"directory"`
+	Command     string     `json:"command"`
+	Expression  Expression `json:"expression"`
+	Environment []string   `json:"environment"`
 }
 
 type StatefulFunctionBlock struct {
-	Name       string     `json:"name"`
-	Params     []string   `json:"params"`
-	Commands   []Command  `json:"commands"`
-	OS         string     `json:"os"`
-	Directory  string     `json:"directory"`
-	Expression Expression `json:"expression"`
+	Name        string     `json:"name"`
+	Params      []string   `json:"params"`
+	Commands    []Command  `json:"commands"`
+	OS          string     `json:"os"`
+	Directory   string     `json:"directory"`
+	Expression  Expression `json:"expression"`
+	Environment []string   `json:"environment"`
 }
 
 type FunctionBlock struct {
@@ -61,6 +63,7 @@ func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunct
 			directory, err := SetBlockDirectory(block)
 			os := block.Directory //nolint:varnamelen // wontfix
 			expr := block.Expression
+			env := block.Environment
 
 			if err != nil {
 				return err
@@ -90,11 +93,17 @@ func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunct
 					commandExpr = expr
 				}
 
+				commandEnv := cmd.Environment
+				if len(commandEnv) == 0 {
+					commandEnv = env
+				}
+
 				currentBlock.Commands = append(currentBlock.Commands, Command{
-					Command:    commandText,
-					Directory:  commandDirectory,
-					OS:         commandOS,
-					Expression: commandExpr,
+					Command:     commandText,
+					Directory:   commandDirectory,
+					OS:          commandOS,
+					Expression:  commandExpr,
+					Environment: commandEnv,
 				})
 			}
 
@@ -136,5 +145,43 @@ func SetFunctionParams(original string, oldArray []string, newArray []string) st
 		original = strings.ReplaceAll(original, string(token.TokenLeftBracket)+old+string(token.TokenRightBracket), new)
 	}
 
+	return SetEnvironmentVariables(original)
+}
+
+func SetEnvironmentVariables(original string) string {
+	variables := scanIdentifiers(original)
+
+	for _, variable := range variables {
+		original = strings.ReplaceAll(original, string(token.TokenString)+string(token.TokenLeftParen)+variable+string(token.TokenRightParen), os.Getenv(variable))
+	}
+
 	return original
+}
+
+func scanIdentifiers(input string) []string {
+	var items []string
+	index := 0
+
+	for {
+		start := strings.Index(input[index:], string(token.TokenString)+string(token.TokenLeftParen))
+		if start == -1 {
+			break
+		}
+
+		start += index
+
+		end := strings.Index(input[start:], string(token.TokenRightParen))
+		if end == -1 {
+			break
+		}
+
+		end += start
+
+		item := input[start+2 : end]
+		items = append(items, item)
+
+		index = end + 1
+	}
+
+	return items
 }

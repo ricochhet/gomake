@@ -33,4 +33,6 @@ const (
 	TokenComment      = '#'
 	TokenEscape       = '\\'
 	TokenQuote        = '"'
+	TokenColon        = ':'
+	TokenString       = '$'
 )
