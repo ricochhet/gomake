@@ -1,8 +1,0 @@
-test() {
-	@(cd:"directory")
-	@(os:"windows")
-	@(env:"ak=av","bk=bv")
-	@(eq:"$(GOPATH)","123")
-	echo test $(foobar)
-}
-## Replace inline for ENVs e.g. $GOPATH == ./gopath/

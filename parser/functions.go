@@ -76,6 +76,8 @@ func ParseDirectory(scanner *scanner.Scanner, currentBlock *object.StatefulFunct
 		currentBlock.Directory = identifier[0]
 	}
 
+	currentBlock.Directory = object.SetEnvironmentVariables(currentBlock.Directory)
+
 	return nil
 }
 
