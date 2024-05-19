@@ -47,5 +47,14 @@ task() {
 @(os:"all")
 ```
 
+### Environment Variables
+```
+echo ${GOPATH}
+# Echo ./path/to/go/bin
+
+@(env:"GOPATH=./other/path/to/go/bin")
+# Set GOPATH to ./other/path/to/go/bin during runtime.
+```
+
 # License
 See LICENSE file.
