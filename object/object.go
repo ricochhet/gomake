@@ -58,7 +58,20 @@ type Expression struct {
 	Result    bool   `json:"result"`
 }
 
-var ErrInvalidKeyValuePair = errors.New("invalid key=value pair")
+var (
+	ErrBlockNotFound       = errors.New("function block was not found or is malformed")
+	ErrInvalidKeyValuePair = errors.New("invalid key=value pair")
+)
+
+func GetBlock(blocks []StatefulFunctionBlock, blockName string) (StatefulFunctionBlock, error) {
+	for _, block := range blocks {
+		if block.Name == blockName {
+			return block, nil
+		}
+	}
+
+	return StatefulFunctionBlock{}, ErrBlockNotFound
+}
 
 //nolint:cyclop // wontfix
 func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunctionBlock, callerName string, callerParams []string) error {
@@ -66,10 +79,6 @@ func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunct
 		//nolint:nestif // wontfix
 		if block.Name == callerName {
 			directory, err := SetBlockDirectory(block)
-			os := block.Directory //nolint:varnamelen // wontfix
-			expr := block.Expression
-			env := block.Environment
-
 			if err != nil {
 				return err
 			}
@@ -80,8 +89,7 @@ func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunct
 
 				if len(callerParams) != 0 {
 					commandText = SetFunctionParams(cmd.Command, block.Params, callerParams)
-					commandExpr.OperandA = SetFunctionParams(cmd.Expression.OperandA, block.Params, callerParams)
-					commandExpr.OperandB = SetFunctionParams(cmd.Expression.OperandB, block.Params, callerParams)
+					commandExpr = SetOperandFunctionParams(cmd.Expression, block.Params, callerParams)
 				}
 
 				commandDirectory := cmd.Directory
@@ -91,16 +99,16 @@ func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunct
 
 				commandOS := cmd.OS
 				if commandOS == "" {
-					commandOS = os
+					commandOS = block.Directory
 				}
 
 				if commandExpr.OperandA == "" && commandExpr.OperandB == "" {
-					commandExpr = expr
+					commandExpr = block.Expression
 				}
 
 				commandEnv := cmd.Environment
 				if len(commandEnv) == 0 {
-					commandEnv = env
+					commandEnv = block.Environment
 				}
 
 				currentBlock.Commands = append(currentBlock.Commands, Command{
@@ -153,6 +161,13 @@ func SetFunctionParams(original string, oldArray []string, newArray []string) st
 	return SetEnvironmentVariables(original)
 }
 
+func SetOperandFunctionParams(expr Expression, oldArray []string, newArray []string) Expression {
+	expr.OperandA = SetFunctionParams(expr.OperandA, oldArray, newArray)
+	expr.OperandB = SetFunctionParams(expr.OperandA, oldArray, newArray)
+
+	return expr
+}
+
 func SetEnvironmentVariables(original string) string {
 	variables := scanner.ScanVariables(original)
 
@@ -168,6 +183,16 @@ func SetEnvironmentVariables(original string) string {
 	}
 
 	return original
+}
+
+func SetArrayFunctionParams(original, oldArray, newArray []string) []string {
+	var replacements []string
+
+	for _, str := range original {
+		replacements = append(replacements, SetFunctionParams(str, oldArray, newArray))
+	}
+
+	return replacements
 }
 
 func SetKeyValueVariables(original string, pairs []string) (string, error) {

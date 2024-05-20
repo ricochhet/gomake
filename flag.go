@@ -52,5 +52,7 @@ func init() {
 	args := flag.String("args", "", "specify the arguments to pass into the function block")
 	flag.Parse()
 
-	flags.Arguments = strings.Split(*args, util.Seperator())
+	if *args != "" {
+		flags.Arguments = append(flags.Arguments, strings.Split(*args, util.Seperator())...)
+	}
 }

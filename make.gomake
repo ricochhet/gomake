@@ -11,7 +11,7 @@ test() {
 }
 
 deadcode() {
-    deadcode github.com/ricochhet/gomake
+    deadcode ./...
 }
 
 build("platform") {
@@ -24,16 +24,14 @@ build("platform") {
     @(eq:"{platform}","linux")
     @(env:"CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64")
     go build -o gomake-linux -trimpath -ldflags="%{LDFLAGS}"
-    
     @(env:"CGO_ENABLED=0", "GOOS=linux", "GOARCH=arm64")
-    go build -o gomake-linux-arm64 -trimpath -ldflags="-w -s"
+    go build -o gomake-linux-arm64 -trimpath -ldflags="%{LDFLAGS}"
     
     @(eq:"{platform}","darwin")
     @(env:"CGO_ENABLED=0", "GOOS=darwin", "GOARCH=amd64")
-    go build -o gomake-darwin -trimpath -ldflags="-w -s"
-    
+    go build -o gomake-darwin -trimpath -ldflags="%{LDFLAGS}"
     @(env:"CGO_ENABLED=0", "GOOS=darwin", "GOARCH=arm64")
-    go build -o gomake-darwin-arm64 -trimpath -ldflags="-w -s"
+    go build -o gomake-darwin-arm64 -trimpath -ldflags="%{LDFLAGS}"
 }
 
 prebuild() {

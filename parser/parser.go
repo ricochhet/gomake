@@ -20,6 +20,7 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/ricochhet/gomake/object"
@@ -27,10 +28,7 @@ import (
 	"github.com/ricochhet/gomake/token"
 )
 
-var (
-	ErrTooFewArgumentsInBlock  = errors.New("too few arguments in block")
-	ErrOutdatedDirectorySetter = errors.New("outdated directory setter, use @(cd:./path/)")
-)
+var ErrTooFewArgumentsInBlock = errors.New("too few arguments in block")
 
 func ParseBlock(block object.StatefulFunctionBlock) object.FunctionBlock {
 	return object.FunctionBlock{
@@ -57,6 +55,7 @@ func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (obje
 
 	for _, cmd := range block.Commands {
 		envParsedCmd, err := object.SetKeyValueVariables(object.SetFunctionParams(cmd.Command, block.Params, args), cmd.Environment)
+		fmt.Println(envParsedCmd)
 		if err != nil {
 			return object.StatefulFunctionBlock{}, err
 		}
@@ -66,7 +65,7 @@ func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (obje
 			Command:     envParsedCmd,
 			Directory:   cmd.Directory,
 			Expression:  ParseExpressionResult(cmd.Expression, block.Params, args),
-			Environment: cmd.Environment,
+			Environment: object.SetArrayFunctionParams(cmd.Environment, block.Params, args),
 		})
 	}
 
@@ -147,53 +146,28 @@ func ParseText(text string) ([]object.StatefulFunctionBlock, error) {
 			scanner.ReadNext()
 
 			switch scanner.CurrentRune {
-			case token.TokenDirectory:
-				return nil, ErrOutdatedDirectorySetter
 			case token.TokenLeftParen:
 				//nolint:mnd // wontfix
 				switch scanner.Peek(0) {
 				case 'c':
-					if scanner.PeekAhead(3) == "cd:" {
-						scanner.ReadAhead(3)
-						scanner.SkipWhitespace()
-
-						if err := ParseDirectory(scanner, currentBlock, cwd); err != nil {
-							return nil, err
-						}
+					if err := CdCaller(scanner, currentBlock, cwd); err != nil {
+						return nil, err
 					}
 				case 'o':
-					if scanner.PeekAhead(3) == "os:" {
-						scanner.ReadAhead(3)
-						scanner.SkipWhitespace()
-
-						if err := ParseOperatingSystem(scanner, currentBlock); err != nil {
-							return nil, err
-						}
+					if err := OsCaller(scanner, currentBlock); err != nil {
+						return nil, err
 					}
 				case 'e':
-					if scanner.PeekAhead(3) == "eq:" {
-						scanner.ReadAhead(3)
-						scanner.SkipWhitespace()
-
-						if err := ParseExpression(scanner, currentBlock, 0); err != nil {
-							return nil, err
-						}
+					if err := EqCaller(scanner, currentBlock); err != nil {
+						return nil, err
 					}
 
-					if scanner.PeekAhead(4) == "env:" {
-						scanner.ReadAhead(4)
-						scanner.SkipWhitespace()
-
-						ParseEnvironment(scanner, currentBlock)
+					if err := EnvCaller(scanner, currentBlock); err != nil {
+						return nil, err
 					}
 				case 'n':
-					if scanner.PeekAhead(4) == "neq:" {
-						scanner.ReadAhead(4)
-						scanner.SkipWhitespace()
-
-						if err := ParseExpression(scanner, currentBlock, 1); err != nil {
-							return nil, err
-						}
+					if err := NeqCaller(scanner, currentBlock); err != nil {
+						return nil, err
 					}
 				default:
 					scanner.ScanToEndOfLine()

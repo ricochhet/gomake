@@ -19,7 +19,6 @@
 package interpret
 
 import (
-	"github.com/ricochhet/gomake/block"
 	"github.com/ricochhet/gomake/object"
 	"github.com/ricochhet/gomake/parser"
 )
@@ -30,7 +29,7 @@ func Interpret(text string, fname string, args []string) (object.FunctionBlock, 
 		return object.FunctionBlock{}, err
 	}
 
-	block, err := block.GetBlock(blocks, fname)
+	block, err := object.GetBlock(blocks, fname)
 	if err != nil {
 		return object.FunctionBlock{}, err
 	}
