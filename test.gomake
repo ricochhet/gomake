@@ -1,0 +1,9 @@
+__("param1", "param2") {
+	echo {param1} {param2}
+}
+
+test() {
+	@(neq:"Hello", "World")
+	@__("Hello", "World")
+	echo hi
+}

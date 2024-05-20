@@ -23,7 +23,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ricochhet/gomake/dump"
 	"github.com/ricochhet/gomake/interpret"
 	"github.com/ricochhet/gomake/process"
 )
@@ -61,7 +60,7 @@ func main() {
 	}
 
 	if flags.Dump {
-		if data, err := dump.Dump(block); err == nil {
+		if data, err := Dump(block); err == nil {
 			fmt.Println(data)
 			return
 		}
