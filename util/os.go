@@ -41,7 +41,7 @@ var KnownOS = []string{ //nolint:gochecknoglobals // wontfix
 	"zos",
 }
 
-func Seperator() string {
+func Separator() string {
 	if runtime.GOOS == "windows" {
 		return ";"
 	}

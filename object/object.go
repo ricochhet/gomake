@@ -186,7 +186,7 @@ func SetEnvironmentVariables(original string) string {
 }
 
 func SetArrayFunctionParams(original, oldArray, newArray []string) []string {
-	var replacements []string
+	replacements := []string{}
 
 	for _, str := range original {
 		replacements = append(replacements, SetFunctionParams(str, oldArray, newArray))

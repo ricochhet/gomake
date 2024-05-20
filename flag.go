@@ -53,6 +53,6 @@ func init() {
 	flag.Parse()
 
 	if *args != "" {
-		flags.Arguments = append(flags.Arguments, strings.Split(*args, util.Seperator())...)
+		flags.Arguments = append(flags.Arguments, strings.Split(*args, util.Separator())...)
 	}
 }

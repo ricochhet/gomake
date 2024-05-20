@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/ricochhet/gomake/object"
 	"github.com/ricochhet/gomake/scanner"
 )
@@ -10,7 +8,7 @@ import (
 func CdCaller(s *scanner.Scanner, block *object.StatefulFunctionBlock, cwd string) error {
 	if call(s, "cd:") {
 		if err := ParseDirectory(s, block, cwd); err != nil {
-			return fmt.Errorf("CdCaller(): %s", err)
+			return err
 		}
 	}
 

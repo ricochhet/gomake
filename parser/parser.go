@@ -20,7 +20,6 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/ricochhet/gomake/object"
@@ -55,7 +54,6 @@ func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (obje
 
 	for _, cmd := range block.Commands {
 		envParsedCmd, err := object.SetKeyValueVariables(object.SetFunctionParams(cmd.Command, block.Params, args), cmd.Environment)
-		fmt.Println(envParsedCmd)
 		if err != nil {
 			return object.StatefulFunctionBlock{}, err
 		}
@@ -147,7 +145,6 @@ func ParseText(text string) ([]object.StatefulFunctionBlock, error) {
 
 			switch scanner.CurrentRune {
 			case token.TokenLeftParen:
-				//nolint:mnd // wontfix
 				switch scanner.Peek(0) {
 				case 'c':
 					if err := CdCaller(scanner, currentBlock, cwd); err != nil {
