@@ -201,14 +201,14 @@ func ScanVariables(text string) []string {
 	index := 0
 
 	for {
-		start := strings.Index(text[index:], string(token.TokenString)+string(token.TokenLeftParen))
+		start := strings.Index(text[index:], string(token.TokenString)+string(token.TokenLeftBracket))
 		if start == -1 {
 			break
 		}
 
 		start += index
 
-		end := strings.Index(text[start:], string(token.TokenRightParen))
+		end := strings.Index(text[start:], string(token.TokenRightBracket))
 		if end == -1 {
 			break
 		}

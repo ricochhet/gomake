@@ -26,9 +26,10 @@ import (
 	"runtime"
 
 	"github.com/ricochhet/gomake/object"
+	"github.com/ricochhet/gomake/util"
 )
 
-var errInvalidPlatformArchitecture = errors.New("invalid platform architecture")
+var ErrInvalidPlatformArchitecture = errors.New("invalid platform architecture")
 
 func Exec(commands []object.Command) error {
 	var shell, flag string
@@ -42,7 +43,7 @@ func Exec(commands []object.Command) error {
 
 	for _, cmd := range commands {
 		if runtime.GOOS != cmd.OS && cmd.OS != "all" {
-			return errInvalidPlatformArchitecture
+			return ErrInvalidPlatformArchitecture
 		}
 
 		if !cmd.Expression.Result {
@@ -51,7 +52,7 @@ func Exec(commands []object.Command) error {
 
 		fmt.Printf("gomake: executing command: %s in directory: %s\n", cmd.Command, cmd.Directory)
 
-		args := splitCommand(cmd.Command)
+		args := util.StringToArgs(cmd.Command)
 		args = append([]string{flag}, args...)
 
 		command := exec.Command(shell, args...)
@@ -60,6 +61,7 @@ func Exec(commands []object.Command) error {
 		command.Dir = cmd.Directory
 
 		if len(cmd.Environment) != 0 {
+			command.Env = append(command.Env, command.Environ()...)
 			command.Env = append(command.Env, cmd.Environment...)
 		}
 
@@ -69,36 +71,4 @@ func Exec(commands []object.Command) error {
 	}
 
 	return nil
-}
-
-func splitCommand(command string) []string {
-	var args []string
-
-	var arg string
-
-	var inQuote bool
-
-	for _, char := range command {
-		if char == '"' {
-			inQuote = !inQuote
-			continue
-		}
-
-		if char == ' ' && !inQuote {
-			if arg != "" {
-				args = append(args, arg)
-				arg = ""
-			}
-
-			continue
-		}
-
-		arg += string(char)
-	}
-
-	if arg != "" {
-		args = append(args, arg)
-	}
-
-	return args
 }

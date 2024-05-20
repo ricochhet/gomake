@@ -23,8 +23,8 @@ import (
 	"slices"
 
 	"github.com/ricochhet/gomake/object"
-	"github.com/ricochhet/gomake/process"
 	"github.com/ricochhet/gomake/scanner"
+	"github.com/ricochhet/gomake/util"
 )
 
 var (
@@ -89,7 +89,7 @@ func ParseOperatingSystem(scanner *scanner.Scanner, currentBlock *object.Statefu
 		return errUnknownParameterInCaller
 	}
 
-	if !slices.Contains(process.KnownOS, identifier[0]) && identifier[0] != "all" {
+	if !slices.Contains(util.KnownOS, identifier[0]) && identifier[0] != "all" {
 		return errUnknownPlatformIdentifier
 	}
 
@@ -107,5 +107,12 @@ func ParseEnvironment(scanner *scanner.Scanner, currentBlock *object.StatefulFun
 	variables := scanner.ScanParams()
 	scanner.ScanToEndOfLine()
 
-	currentBlock.Environment = append(currentBlock.Environment, variables...)
+	envMap := util.SliceToMap(currentBlock.Environment)
+	varMap := util.SliceToMap(variables)
+
+	for k, v := range varMap {
+		envMap[k] = v
+	}
+
+	currentBlock.Environment = util.MapToSlice(envMap)
 }

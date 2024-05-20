@@ -16,25 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package process
+package util
 
-var KnownOS = []string{ //nolint:gochecknoglobals // wontfix
-	"aix",
-	"android",
-	"darwin",
-	"dragonfly",
-	"freebsd",
-	"hurd",
-	"illumos",
-	"ios",
-	"js",
-	"linux",
-	"nacl",
-	"netbsd",
-	"openbsd",
-	"plan9",
-	"solaris",
-	"wasip1",
-	"windows",
-	"zos",
+import (
+	"fmt"
+	"strings"
+)
+
+func SliceToMap(env []string) map[string]string {
+	envMap := make(map[string]string)
+
+	//nolint:mnd // wontfix
+	for _, item := range env {
+		kv := strings.SplitN(item, "=", 2)
+		if len(kv) == 2 {
+			envMap[kv[0]] = kv[1]
+		}
+	}
+
+	return envMap
+}
+
+func MapToSlice(envMap map[string]string) []string {
+	env := make([]string, 0, len(envMap))
+
+	for key, value := range envMap {
+		env = append(env, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return env
 }

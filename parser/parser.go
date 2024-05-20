@@ -56,11 +56,16 @@ func ParseStatefulBlock(block object.StatefulFunctionBlock, args []string) (obje
 	}
 
 	for _, cmd := range block.Commands {
+		envParsedCmd, err := object.SetKeyValueVariables(object.SetFunctionParams(cmd.Command, block.Params, args), cmd.Environment)
+		if err != nil {
+			return object.StatefulFunctionBlock{}, err
+		}
+
 		parsedBlock.Commands = append(parsedBlock.Commands, object.Command{
 			OS:          cmd.OS,
-			Command:     object.SetFunctionParams(cmd.Command, block.Params, args),
+			Command:     envParsedCmd,
 			Directory:   cmd.Directory,
-			Expression:  ParseExpressionResult(cmd.Expression),
+			Expression:  ParseExpressionResult(cmd.Expression, block.Params, args),
 			Environment: cmd.Environment,
 		})
 	}

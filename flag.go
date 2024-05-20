@@ -20,9 +20,11 @@ package main
 
 import (
 	"errors"
-	"os"
+	"flag"
+	"strings"
 
 	aflag "github.com/ricochhet/gomake/flag"
+	"github.com/ricochhet/gomake/util"
 )
 
 var ErrTooFewArguments = errors.New("too few arguments for execution")
@@ -44,29 +46,11 @@ func Newflag() *aflag.Flags {
 
 //nolint:gochecknoinits // wontfix
 func init() {
-	start := 1
-	required := 2
+	flag.BoolVar(&flags.Dump, "dump", false, "dump parsed function block to console")
+	flag.StringVar(&flags.Function, "run", "", "specify the task run")
+	flag.StringVar(&flags.Path, "path", "", "specify the gomake file to use")
+	args := flag.String("args", "", "specify the arguments to pass into the function block")
+	flag.Parse()
 
-	if len(os.Args) == 0 {
-		panic(ErrTooFewArguments)
-	}
-
-	if os.Args[1] == "-dump" {
-		start++
-		required++
-		flags.Dump = true
-	}
-
-	if len(os.Args) < required {
-		panic(ErrTooFewArguments)
-	}
-
-	if len(os.Args) == required {
-		flags.Function = os.Args[start]
-		flags.Arguments = os.Args[start+1:]
-	} else {
-		flags.Path = os.Args[start]
-		flags.Function = os.Args[start+1]
-		flags.Arguments = os.Args[start+2:]
-	}
+	flags.Arguments = strings.Split(*args, util.Seperator())
 }

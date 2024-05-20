@@ -25,16 +25,19 @@ import (
 	"github.com/ricochhet/gomake/scanner"
 )
 
-var errTooFewArgumentsInExpression = errors.New("too few arguments in expression")
+var ErrTooFewArgumentsInExpression = errors.New("too few arguments in expression")
 
-func ParseExpressionResult(expr object.Expression) object.Expression {
+func ParseExpressionResult(expr object.Expression, blockArgs []string, args []string) object.Expression {
 	parsedExpr := expr
+
+	parsedExpr.OperandA = object.SetFunctionParams(expr.OperandA, blockArgs, args)
+	parsedExpr.OperandB = object.SetFunctionParams(expr.OperandB, blockArgs, args)
 
 	switch expr.Operation {
 	case 0:
-		parsedExpr.Result = expr.OperandA == expr.OperandB
+		parsedExpr.Result = parsedExpr.OperandA == parsedExpr.OperandB
 	case 1:
-		parsedExpr.Result = expr.OperandA != expr.OperandB
+		parsedExpr.Result = parsedExpr.OperandA != parsedExpr.OperandB
 	default:
 		parsedExpr.Result = true
 	}
@@ -48,7 +51,7 @@ func ParseExpression(scanner *scanner.Scanner, currentBlock *object.StatefulFunc
 	scanner.ScanToEndOfLine()
 
 	if len(operands) != 2 { //nolint:mnd // wontfix
-		return errTooFewArgumentsInExpression
+		return ErrTooFewArgumentsInExpression
 	}
 
 	currentBlock.Expression = object.Expression{

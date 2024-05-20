@@ -31,6 +31,7 @@ import (
 func main() {
 	if flags.Function == "" {
 		Errr(ErrNoFunctionName)
+		return
 	}
 
 	if flags.Path == "" {

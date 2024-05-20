@@ -10,12 +10,30 @@ test() {
     go test ./...
 }
 
-build() {
-    go build -o gomake.exe -trimpath -ldflags="-w -s"
-}
-
 deadcode() {
     deadcode github.com/ricochhet/gomake
+}
+
+build("platform") {
+    @(env:"LDFLAGS=-X 'main.buildDate=$(date)' -X 'main.gitHash=$(git rev-parse HEAD)' -X 'main.buildOn=$(go version)' -w -s ")
+
+    @(eq:"{platform}","windows")
+    @(env:"CGO_ENABLED=0", "GOOS=windows", "GOARCH=amd64")
+    go build -o gomake-windows.exe -trimpath -ldflags="%{LDFLAGS}"
+
+    @(eq:"{platform}","linux")
+    @(env:"CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64")
+    go build -o gomake-linux -trimpath -ldflags="%{LDFLAGS}"
+    
+    @(env:"CGO_ENABLED=0", "GOOS=linux", "GOARCH=arm64")
+    go build -o gomake-linux-arm64 -trimpath -ldflags="-w -s"
+    
+    @(eq:"{platform}","darwin")
+    @(env:"CGO_ENABLED=0", "GOOS=darwin", "GOARCH=amd64")
+    go build -o gomake-darwin -trimpath -ldflags="-w -s"
+    
+    @(env:"CGO_ENABLED=0", "GOOS=darwin", "GOARCH=arm64")
+    go build -o gomake-darwin-arm64 -trimpath -ldflags="-w -s"
 }
 
 prebuild() {
@@ -27,5 +45,7 @@ prebuild() {
 
 all() {
     @prebuild
-    @build
+    @build("windows")
+    @build("linux")
+    @build("darwin")
 }

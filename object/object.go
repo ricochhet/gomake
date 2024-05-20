@@ -19,6 +19,7 @@
 package object
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -56,6 +57,8 @@ type Expression struct {
 	Operation int    `json:"operation"`
 	Result    bool   `json:"result"`
 }
+
+var ErrInvalidKeyValuePair = errors.New("invalid key=value pair")
 
 //nolint:cyclop // wontfix
 func (currentBlock *StatefulFunctionBlock) SetCallerBlock(blocks []StatefulFunctionBlock, callerName string, callerParams []string) error {
@@ -154,9 +157,38 @@ func SetEnvironmentVariables(original string) string {
 	variables := scanner.ScanVariables(original)
 
 	for _, variable := range variables {
-		//nolint:lll // wontfix
-		original = strings.ReplaceAll(original, string(token.TokenString)+string(token.TokenLeftBracket)+variable+string(token.TokenRightBracket), os.Getenv(variable))
+		replacement := string(token.TokenString) + string(token.TokenLeftBracket) + variable + string(token.TokenRightBracket)
+		env := os.Getenv(variable)
+
+		if env == "" {
+			env = replacement
+		}
+
+		original = strings.ReplaceAll(original, replacement, env)
 	}
 
 	return original
+}
+
+func SetKeyValueVariables(original string, pairs []string) (string, error) {
+	variables := scanner.ScanVariables(original)
+
+	for _, variable := range variables {
+		replacement := string(token.TokenString) + string(token.TokenLeftBracket) + variable + string(token.TokenRightBracket)
+
+		//nolint:mnd // wontfix
+		for _, pair := range pairs {
+			kvp := strings.SplitN(pair, "=", 2)
+
+			if len(kvp) != 2 {
+				return "", ErrInvalidKeyValuePair
+			}
+
+			if variable == kvp[0] {
+				original = strings.ReplaceAll(original, replacement, kvp[1])
+			}
+		}
+	}
+
+	return original, nil
 }
